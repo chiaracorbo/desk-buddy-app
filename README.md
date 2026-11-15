@@ -61,11 +61,11 @@ Usa pure un nome di prova (es. `prova`) per non toccare quello vero.
 
 1. Su GitHub apri il repository → **Settings** → **Pages** (nel menu a sinistra).
 2. In *Build and deployment* → *Source* scegli **Deploy from a branch**.
-3. In *Branch* scegli **claude/epic-turing-emj727** e cartella **/ (root)** → **Save**.
+3. In *Branch* scegli **main** e cartella **/ (root)** → **Save**.
 4. Dopo 1–2 minuti l'app è su https://chiaracorbo.github.io/desk-buddy-app/
 
-Il sito è pubblicato dal ramo `claude/epic-turing-emj727`, quello su cui Claude carica gli aggiornamenti:
-ogni modifica caricata lì diventa visibile sul link entro 1–2 minuti, senza altri passaggi.
+Il sito è pubblicato dal ramo `main`: ogni modifica caricata su `main` diventa visibile sul link
+entro 1–2 minuti, senza altri passaggi.
 
 ---
 
