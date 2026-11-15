@@ -1,0 +1,53 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "buddy": {
+      "$codice": {
+        ".read": "$codice.length >= 8",
+        ".write": "$codice.length >= 8",
+        "$nome": {
+          ".validate": "$nome.length >= 1 && $nome.length <= 64",
+          "impostazioni": {
+            ".validate": "newData.hasChildren(['stile', 'colore', 'sveglia', 'promemoriaMinuti', 'citta', 'versione'])",
+            "stile": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 7 && newData.val() % 1 == 0" },
+            "colore": { ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)" },
+            "sveglia": {
+              ".validate": "newData.hasChildren(['attiva', 'ora', 'minuto', 'giorni'])",
+              "attiva": { ".validate": "newData.isBoolean()" },
+              "ora": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 23 && newData.val() % 1 == 0" },
+              "minuto": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59 && newData.val() % 1 == 0" },
+              "giorni": {
+                ".validate": "newData.hasChildren(['0', '1', '2', '3', '4', '5', '6'])",
+                "$giorno": { ".validate": "$giorno.matches(/^[0-6]$/) && newData.isBoolean()" }
+              },
+              "$altro": { ".validate": false }
+            },
+            "promemoriaMinuti": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 240 && newData.val() % 1 == 0" },
+            "citta": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "versione": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 86400000" },
+            "$altro": { ".validate": false }
+          },
+          "stato": {
+            ".validate": "newData.hasChildren(['versione', 'ultimoContatto'])",
+            "stile": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 7" },
+            "colore": { ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)" },
+            "sveglia": {
+              "attiva": { ".validate": "newData.isBoolean()" },
+              "ora": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 23" },
+              "minuto": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59" },
+              "giorni": { "$giorno": { ".validate": "$giorno.matches(/^[0-6]$/) && newData.isBoolean()" } },
+              "$altro": { ".validate": false }
+            },
+            "promemoriaMinuti": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 240" },
+            "citta": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "versione": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "ultimoContatto": { ".validate": "newData.isNumber() && newData.val() <= now + 60000" },
+            "$altro": { ".validate": false }
+          },
+          "$altro": { ".validate": false }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1241 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desk Buddy</title>
+<meta name="description" content="Controlla il tuo Desk Buddy dal telefono.">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<!-- PWA / schermata Home -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Desk Buddy">
+<script src="config.js"></script>
+<style>
+/* =====================================================================
+   VARIABILI DI STILE — cambia qui colori e misure
+   ===================================================================== */
+:root {
+  /* Sfondi (nero puro come lo schermo AMOLED) */
+  --bg: #000000;
+  --surface: #101114;          /* card */
+  --surface-2: #1a1b20;        /* campi, pulsanti secondari */
+  --surface-3: #25262d;        /* pulsanti premuti */
+  --line: #2a2b33;             /* bordi sottili */
+
+  /* Testi */
+  --text: #f5f5f7;
+  --text-dim: #a0a1ab;
+  --text-faint: #6b6c76;
+
+  /* Colore principale: viene sostituito dal colore degli occhi scelto */
+  --accent: #00e5ff;
+  --on-accent: #00161a;        /* testo sopra il colore principale */
+
+  /* Stati */
+  --ok: #3ddc84;
+  --warn: #ffc53d;
+  --err: #ff6b6b;
+
+  /* Misure */
+  --gutter: 16px;              /* margine ai lati dello schermo */
+  --gap: 12px;                 /* spazio tra elementi */
+  --radius-lg: 28px;
+  --radius: 20px;
+  --radius-sm: 14px;
+  --tap: 56px;                 /* altezza minima dei pulsanti */
+  --maxw: 560px;               /* larghezza massima su tablet/desktop */
+  --preview: min(76vw, 340px); /* diametro dell'anteprima rotonda */
+  --tabbar-h: 70px;
+
+  /* Testo */
+  --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-xs: 13px;
+  --fs-s: 15px;
+  --fs-m: 17px;
+  --fs-l: 22px;
+  --fs-xl: 30px;
+
+  /* Animazioni */
+  --speed: .18s;
+}
+
+/* ===================================================================== */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body {
+  font-family: var(--font);
+  font-size: var(--fs-m);
+  line-height: 1.4;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- struttura ---------- */
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter); }
+
+.topbar {
+  background: var(--bg);
+  padding-top: calc(env(safe-area-inset-top) + 10px);
+  padding-bottom: 10px;
+}
+.topbar .wrap { display: flex; align-items: center; gap: var(--gap); }
+.buddy-id { flex: 1; min-width: 0; }
+.buddy-name {
+  font-size: var(--fs-l); font-weight: 700; letter-spacing: -.01em;
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); flex: none; }
+.dot.on { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+.seen { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 2px; }
+
+.icon-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: 0;
+  background: var(--surface-2); display: grid; place-items: center; flex: none;
+}
+.icon-btn svg { width: 24px; height: 24px; }
+
+.sync {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); background: var(--surface);
+  border-radius: 999px; padding: 8px 14px; font-size: var(--fs-xs); font-weight: 600;
+  max-width: 100%;
+}
+.sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); flex: none; }
+.sync[data-s="applied"] { color: var(--ok); }
+.sync[data-s="applied"]::before { background: var(--ok); }
+.sync[data-s="pending"], .sync[data-s="saving"] { color: var(--warn); }
+.sync[data-s="pending"]::before, .sync[data-s="saving"]::before { background: var(--warn); animation: pulse 1.2s infinite; }
+.sync[data-s="offline"], .sync[data-s="auth"] { color: var(--err); }
+.sync[data-s="offline"]::before, .sync[data-s="auth"]::before { background: var(--err); }
+@keyframes pulse { 50% { opacity: .25; } }
+.sync-row { margin-top: 8px; }
+
+main { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px); }
+.screen { padding-top: 4px; }
+h1 { font-size: var(--fs-xl); margin: 8px 0 4px; letter-spacing: -.02em; }
+h2 { font-size: var(--fs-s); font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; margin: 28px 0 10px; }
+p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
+.hint { color: var(--text-dim); font-size: var(--fs-xs); margin: 8px 2px 0; }
+.hint.warn { color: var(--warn); }
+
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: var(--gutter);
+}
+.card + .card { margin-top: var(--gap); }
+
+/* ---------- tab bar ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  background: rgba(10, 10, 12, .92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabbar .wrap { display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 6px; }
+.tab {
+  height: var(--tabbar-h); border: 0; background: none; color: var(--text-faint);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  font-size: 12px; font-weight: 600;
+}
+.tab svg { width: 26px; height: 26px; }
+.tab[aria-current="page"] { color: var(--accent); }
+
+/* ---------- anteprima occhi ---------- */
+.preview-box { display: grid; place-items: center; padding: 8px 0 4px; }
+.bezel {
+  width: calc(var(--preview) + 22px); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #2b2c31, #0b0b0d 60%);
+  display: grid; place-items: center;
+  box-shadow: 0 20px 60px -20px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 0 0 1px #33343a;
+}
+#preview { width: var(--preview); height: var(--preview); border-radius: 50%; background: #000; display: block; }
+.preview-label { text-align: center; color: var(--text-dim); font-size: var(--fs-s); margin-top: 12px; }
+
+.styles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.style-btn {
+  border: 2px solid transparent; background: var(--surface); border-radius: var(--radius-sm);
+  padding: 8px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--text-dim);
+  transition: border-color var(--speed), color var(--speed);
+}
+.style-btn canvas { width: 100%; max-width: 72px; aspect-ratio: 1; border-radius: 50%; background: #000; display: block; }
+.style-btn[aria-checked="true"] { border-color: var(--accent); color: var(--text); }
+
+.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.swatch {
+  aspect-ratio: 1; width: 100%; border-radius: 50%; border: 0; padding: 0;
+  background: var(--c); position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.swatch[aria-checked="true"]::after {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid var(--text);
+}
+.swatch.custom { background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); overflow: visible; }
+.swatch.custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; }
+.color-now { display: flex; align-items: center; gap: 10px; margin-top: 14px; color: var(--text-dim); font-size: var(--fs-s); }
+.color-now b { color: var(--text); font-family: ui-monospace, Menlo, monospace; font-weight: 600; }
+
+/* ---------- controlli ---------- */
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--gap); min-height: var(--tap); }
+.row-label { font-weight: 600; }
+.row-sub { color: var(--text-dim); font-size: var(--fs-xs); }
+
+.switch { position: relative; width: 64px; height: 38px; flex: none; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+.switch span {
+  position: absolute; inset: 0; border-radius: 999px; background: var(--surface-3);
+  transition: background var(--speed);
+}
+.switch span::after {
+  content: ""; position: absolute; top: 4px; left: 4px; width: 30px; height: 30px; border-radius: 50%;
+  background: #fff; transition: transform var(--speed);
+}
+.switch input:checked + span { background: var(--accent); }
+.switch input:checked + span::after { transform: translateX(26px); background: var(--on-accent); }
+.switch input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.time-big {
+  width: 100%; text-align: center; font-size: 56px; font-weight: 700; letter-spacing: -.02em;
+  background: var(--surface-2); border: 0; border-radius: var(--radius); padding: 14px 8px;
+  font-variant-numeric: tabular-nums; min-height: 96px;
+}
+.time-big::-webkit-date-and-time-value { text-align: center; }
+.off .time-big, .off .days { opacity: .45; }
+
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--gap); }
+.day {
+  aspect-ratio: 1; border-radius: 50%; border: 0; background: var(--surface-2);
+  font-weight: 700; font-size: var(--fs-m); color: var(--text-dim);
+}
+.day[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface-2); font-weight: 600; font-size: var(--fs-s);
+}
+.chip[aria-checked="true"], .chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+.chips.small .chip { min-height: 40px; padding: 0 14px; font-size: var(--fs-xs); }
+
+.stepper { display: grid; grid-template-columns: var(--tap) 1fr var(--tap); align-items: center; gap: var(--gap); }
+.stepper button { height: var(--tap); border-radius: 50%; border: 0; background: var(--surface-2); font-size: 28px; font-weight: 600; }
+.stepper output { text-align: center; }
+.big-num { font-size: 48px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.big-unit { color: var(--text-dim); font-size: var(--fs-s); display: block; }
+
+label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 0 0 6px 2px; color: var(--text-dim); }
+.input {
+  width: 100%; min-height: var(--tap); border-radius: var(--radius-sm); border: 1px solid var(--line);
+  background: var(--surface-2); padding: 0 16px; font-size: var(--fs-m);
+}
+.input:focus { outline: none; border-color: var(--accent); }
+.input-group { position: relative; }
+.input-group .input { padding-right: 96px; }
+.input-group .peek {
+  position: absolute; right: 6px; top: 6px; bottom: 6px; border: 0; border-radius: 10px;
+  background: var(--surface-3); padding: 0 12px; font-size: var(--fs-xs); font-weight: 600;
+}
+.field-gap { height: var(--gap); }
+
+.btn {
+  width: 100%; min-height: var(--tap); border-radius: 999px; border: 0;
+  background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: var(--fs-m);
+  padding: 0 20px;
+}
+.btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+.btn.danger { background: transparent; color: var(--err); border: 1px solid color-mix(in srgb, var(--err) 40%, transparent); }
+.btn:disabled { opacity: .45; }
+.btn + .btn { margin-top: 10px; }
+
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: var(--fs-s); }
+.kv dt { color: var(--text-dim); }
+.kv dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+
+.city-now { font-size: var(--fs-l); font-weight: 700; }
+
+.footer-version { text-align: center; color: var(--text-faint); font-size: var(--fs-xs); padding: 28px 0 8px; user-select: none; }
+
+/* ---------- onboarding ---------- */
+.onboard { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;
+  padding-top: calc(env(safe-area-inset-top) + 24px); padding-bottom: calc(env(safe-area-inset-bottom) + 24px); }
+.onboard canvas { width: 140px; height: 140px; border-radius: 50%; display: block; margin: 0 auto 18px; }
+.onboard h1 { text-align: center; }
+.onboard p.lead { text-align: center; margin-bottom: 24px; }
+.divider { display: flex; align-items: center; gap: 10px; color: var(--text-faint); font-size: var(--fs-xs); margin: 22px 0; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.error { color: var(--err); font-size: var(--fs-s); margin: 10px 2px 0; min-height: 1.4em; }
+
+/* ---------- avvisi ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 14px);
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 50;
+  background: var(--surface-3); border: 1px solid var(--line); color: var(--text);
+  padding: 12px 18px; border-radius: 16px; font-size: var(--fs-s); max-width: calc(100vw - 32px);
+  transition: opacity .2s, transform .2s; text-align: center;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.back { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--accent);
+  font-weight: 600; padding: 8px 0; min-height: 44px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ======================= PRIMA APERTURA ======================= -->
+<section id="onboarding" class="wrap onboard" hidden>
+  <canvas id="ob-eyes" width="280" height="280" aria-hidden="true"></canvas>
+  <h1>Ciao! Colleghiamo il tuo buddy</h1>
+  <p class="lead">Scrivi il nome e il codice segreto che hai scelto nel portale <b>DeskBuddy-Setup</b>.</p>
+  <form id="ob-form" autocomplete="off" novalidate>
+    <label class="field" for="ob-nome">Nome del buddy</label>
+    <input class="input" id="ob-nome" name="nome" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="64" placeholder="es. Pippo">
+    <div class="field-gap"></div>
+    <label class="field" for="ob-codice">Codice segreto</label>
+    <div class="input-group">
+      <input class="input" id="ob-codice" name="codice" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="64">
+      <button type="button" class="peek" data-peek="ob-codice">Mostra</button>
+    </div>
+    <p class="error" id="ob-error" role="alert"></p>
+    <button class="btn" type="submit">Collega</button>
+  </form>
+  <div class="divider">oppure</div>
+  <label class="field" for="ob-link">Hai un link di configurazione? Incollalo qui</label>
+  <input class="input" id="ob-link" placeholder="https://…#nome=…&codice=…" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <p class="hint">Nome e codice restano salvati solo su questo telefono.</p>
+</section>
+
+<!-- ======================= APP ======================= -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="buddy-id">
+        <div class="buddy-name"><span class="dot" id="dot"></span><span id="hdr-nome">Buddy</span></div>
+        <div class="seen" id="hdr-seen">mai visto</div>
+      </div>
+      <button class="icon-btn" id="btn-settings" aria-label="Impostazioni">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+    <div class="wrap sync-row">
+      <button class="sync" id="sync" data-s="none" aria-live="polite">Caricamento…</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- OCCHI -->
+    <section class="screen wrap" id="scr-occhi" data-screen="occhi">
+      <div class="preview-box">
+        <div class="bezel"><canvas id="preview" width="466" height="466" aria-label="Anteprima degli occhi"></canvas></div>
+      </div>
+      <div class="preview-label" id="preview-label">Classici</div>
+
+      <h2>Stile</h2>
+      <div class="styles" id="styles" role="radiogroup" aria-label="Stile degli occhi"></div>
+
+      <h2>Colore</h2>
+      <div class="swatches" id="swatches" role="radiogroup" aria-label="Colore degli occhi"></div>
+      <div class="color-now">Colore scelto: <b id="color-hex">#00E5FF</b></div>
+      <p class="hint warn" id="color-dark" hidden>Colore molto scuro: sullo schermo nero si vedrà poco.</p>
+    </section>
+
+    <!-- SVEGLIA -->
+    <section class="screen wrap" id="scr-sveglia" data-screen="sveglia" hidden>
+      <h1>Sveglia</h1>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-label">Sveglia attiva</div><div class="row-sub" id="alarm-summary">Spenta</div></div>
+          <label class="switch"><input type="checkbox" id="alarm-on" aria-label="Sveglia attiva"><span></span></label>
+        </div>
+      </div>
+      <div id="alarm-body">
+        <h2>Ora</h2>
+        <input class="time-big" type="time" id="alarm-time" value="07:30" aria-label="Ora della sveglia">
+        <h2>Giorni</h2>
+        <div class="days" id="days"></div>
+        <div class="chips small" style="margin-top:14px" id="day-presets">
+          <button class="chip" data-preset="feriali">Lun–Ven</button>
+          <button class="chip" data-preset="tutti">Tutti i giorni</button>
+          <button class="chip" data-preset="weekend">Weekend</button>
+        </div>
+        <p class="hint warn" id="alarm-nodays" hidden>Nessun giorno scelto: la sveglia non suonerà.</p>
+      </div>
+    </section>
+
+    <!-- PROMEMORIA -->
+    <section class="screen wrap" id="scr-promemoria" data-screen="promemoria" hidden>
+      <h1>Promemoria</h1>
+      <p class="lead">Ogni quanto il buddy ti fa un promemoria.</p>
+      <div class="card">
+        <div class="stepper">
+          <button id="rem-minus" aria-label="Meno 5 minuti">−</button>
+          <output id="rem-out" aria-live="polite"><span class="big-num" id="rem-num">Spento</span><span class="big-unit" id="rem-unit">&nbsp;</span></output>
+          <button id="rem-plus" aria-label="Più 5 minuti">+</button>
+        </div>
+      </div>
+      <h2>Scelte rapide</h2>
+      <div class="chips" id="rem-chips" role="radiogroup" aria-label="Intervallo promemoria"></div>
+    </section>
+
+    <!-- METEO -->
+    <section class="screen wrap" id="scr-meteo" data-screen="meteo" hidden>
+      <h1>Meteo</h1>
+      <p class="lead">Il buddy mostra il meteo di questa città.</p>
+      <form id="city-form" class="card" autocomplete="off">
+        <label class="field" for="city">Città</label>
+        <input class="input" id="city" maxlength="60" placeholder="es. Milano" enterkeyhint="done" autocapitalize="words">
+        <div class="field-gap"></div>
+        <button class="btn" type="submit" id="city-save">Salva città</button>
+        <p class="hint" id="city-hint"></p>
+      </form>
+    </section>
+
+    <!-- IMPOSTAZIONI -->
+    <section class="screen wrap" id="scr-impostazioni" data-screen="impostazioni" hidden>
+      <button class="back" id="btn-back">‹ Indietro</button>
+      <h1>Impostazioni</h1>
+
+      <h2>Il tuo buddy</h2>
+      <form class="card" id="cred-form" autocomplete="off" novalidate>
+        <label class="field" for="set-nome">Nome del buddy</label>
+        <input class="input" id="set-nome" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="64">
+        <div class="field-gap"></div>
+        <label class="field" for="set-codice">Codice segreto</label>
+        <div class="input-group">
+          <input class="input" id="set-codice" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="64">
+          <button type="button" class="peek" data-peek="set-codice">Mostra</button>
+        </div>
+        <p class="error" id="set-error" role="alert"></p>
+        <button class="btn" type="submit">Salva</button>
+        <p class="hint">Devono essere uguali a quelli del portale DeskBuddy-Setup (attenzione a maiuscole e minuscole).</p>
+      </form>
+
+      <h2>Stato del buddy</h2>
+      <div class="card">
+        <dl class="kv" id="buddy-info"></dl>
+      </div>
+
+      <div id="install-box" hidden>
+        <h2>Aggiungi alla schermata Home</h2>
+        <div class="card">
+          <p class="lead" id="install-text" style="margin:0"></p>
+          <button class="btn" id="install-btn" style="margin-top:14px" hidden>Installa l'app</button>
+        </div>
+      </div>
+
+      <div id="test-box" hidden>
+        <h2>Strumenti di prova</h2>
+        <div class="card">
+          <p class="lead" style="margin-top:0">Fingono di essere il buddy: scrivono lo <b>stato</b> nel database come farebbe lui.</p>
+          <div class="row">
+            <div><div class="row-label">Simula buddy acceso</div><div class="row-sub">Applica ogni modifica dopo 3 secondi</div></div>
+            <label class="switch"><input type="checkbox" id="sim-auto" aria-label="Simula buddy acceso"><span></span></label>
+          </div>
+          <div class="field-gap"></div>
+          <button class="btn secondary" id="sim-now">Simula buddy: applica adesso</button>
+          <button class="btn secondary" id="sim-old">Simula buddy visto 2 ore fa</button>
+          <button class="btn secondary" id="sim-clear">Cancella lo stato (buddy mai visto)</button>
+          <button class="btn secondary" id="sim-hide">Nascondi strumenti di prova</button>
+        </div>
+      </div>
+
+      <h2>Questo telefono</h2>
+      <button class="btn danger" id="btn-logout">Scollega questo telefono</button>
+      <p class="hint">Cancella nome e codice da questo telefono. Le impostazioni del buddy restano salvate.</p>
+
+      <div class="footer-version" id="app-version">Desk Buddy</div>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Sezioni">
+    <div class="wrap">
+      <button class="tab" data-go="occhi" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        Occhi
+      </button>
+      <button class="tab" data-go="sveglia">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/></svg>
+        Sveglia
+      </button>
+      <button class="tab" data-go="promemoria">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        Promemoria
+      </button>
+      <button class="tab" data-go="meteo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.7A4 4 0 0 0 8.1 11"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6z"/></svg>
+        Meteo
+      </button>
+    </div>
+  </nav>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   COSTANTI
+   ===================================================================== */
+const APP_VERSION = "1.0.0";
+const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
+const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
+
+const STILI = ["Classici", "Ovali", "Tondi", "Gatto", "Assonnati", "Diaframma", "Cuore", "Stella"];
+const COLORI = [
+  ["#00E5FF", "Ciano"], ["#39FF88", "Verde"], ["#FFD60A", "Giallo"], ["#FF8A00", "Arancione"],
+  ["#FF3B30", "Rosso"], ["#FF4FA3", "Rosa"], ["#A970FF", "Viola"], ["#2F7BFF", "Blu"], ["#FFFFFF", "Bianco"]
+];
+const GIORNI = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
+const PROMEMORIA_RAPIDI = [0, 15, 30, 45, 60, 90, 120];
+const PROMEMORIA_MAX = 240, PROMEMORIA_PASSO = 5;
+
+const LS = {
+  nome: "deskbuddy.nome", codice: "deskbuddy.codice", cache: "deskbuddy.cache",
+  prova: "deskbuddy.prova", tab: "deskbuddy.tab", sim: "deskbuddy.simAuto"
+};
+
+function predefinite() {
+  return {
+    stile: 0,
+    colore: "#00E5FF",
+    sveglia: { attiva: false, ora: 7, minuto: 30, giorni: [true, true, true, true, true, false, false] },
+    promemoriaMinuti: 0,
+    citta: ""
+  };
+}
+
+/* =====================================================================
+   UTILITÀ
+   ===================================================================== */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const ls = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+  json(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
+};
+const intIn = (v, min, max, def) => { const n = Number(v); return Number.isInteger(n) && n >= min && n <= max ? n : def; };
+const pad2 = n => String(n).padStart(2, "0");
+
+// Nome e codice diventano pezzi dell'indirizzo nel database: Firebase non accetta . $ # [ ] /
+function chiaveValida(s) {
+  return typeof s === "string" && s.length >= 1 && s.length <= 64 && !/[.$#\[\]\/\u0000-\u001f\u007f]/.test(s);
+}
+function erroreChiave(s, cosa) {
+  if (!s) return `Scrivi il ${cosa}.`;
+  if (s.length > 64) return `Il ${cosa} è troppo lungo.`;
+  if (!chiaveValida(s)) return `Il ${cosa} non può contenere questi simboli: . $ # [ ] /`;
+  return "";
+}
+
+function pulisci(x) {
+  const d = predefinite();
+  if (!x || typeof x !== "object") return d;
+  const sv = (x.sveglia && typeof x.sveglia === "object") ? x.sveglia : {};
+  const g = sv.giorni;
+  return {
+    stile: intIn(x.stile, 0, 7, d.stile),
+    colore: (typeof x.colore === "string" && /^#[0-9a-fA-F]{6}$/.test(x.colore)) ? x.colore.toUpperCase() : d.colore,
+    sveglia: {
+      attiva: typeof sv.attiva === "boolean" ? sv.attiva : d.sveglia.attiva,
+      ora: intIn(sv.ora, 0, 23, d.sveglia.ora),
+      minuto: intIn(sv.minuto, 0, 59, d.sveglia.minuto),
+      giorni: g && typeof g === "object" ? Array.from({ length: 7 }, (_, i) => g[i] === true) : d.sveglia.giorni.slice()
+    },
+    promemoriaMinuti: intIn(x.promemoriaMinuti, 0, PROMEMORIA_MAX, d.promemoriaMinuti),
+    citta: typeof x.citta === "string" ? x.citta.slice(0, 60) : d.citta,
+    versione: typeof x.versione === "number" ? x.versione : null
+  };
+}
+
+function fa(ms) {
+  if (ms == null || !isFinite(ms)) return null;
+  const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+  if (s < 45) return "adesso";
+  const m = Math.round(s / 60);
+  if (m < 2) return "1 minuto fa";
+  if (m < 60) return `${m} minuti fa`;
+  const h = Math.round(m / 60);
+  if (h < 2) return "1 ora fa";
+  if (h < 24) return `${h} ore fa`;
+  const g = Math.round(h / 24);
+  return g < 2 ? "ieri" : `${g} giorni fa`;
+}
+
+function luminanza(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+  return .2126 * c[0] + .7152 * c[1] + .0722 * c[2];
+}
+
+let toastTimer;
+function toast(msg, ms = 2600) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), ms);
+}
+
+/* =====================================================================
+   DATABASE (Firebase Realtime Database, API REST con fetch)
+   ===================================================================== */
+class ErroreDB extends Error { constructor(status) { super("HTTP " + status); this.status = status; } }
+
+function percorso(sotto) {
+  return `${DB_URL}/buddy/${encodeURIComponent(S.codice)}/${encodeURIComponent(S.nome)}/${sotto}.json`;
+}
+async function richiesta(metodo, sotto, dati) {
+  const opz = { method: metodo, cache: "no-store" };
+  // Niente intestazione Content-Type: così il browser non fa la richiesta preliminare (CORS) e Firebase accetta lo stesso il JSON
+  if (dati !== undefined) opz.body = JSON.stringify(dati);
+  const r = await fetch(percorso(sotto), opz);
+  if (!r.ok) throw new ErroreDB(r.status);
+  return r.status === 204 ? null : r.json();
+}
+const dbGet = sotto => richiesta("GET", sotto);
+const dbPut = (sotto, dati) => richiesta("PUT", sotto, dati);
+const dbDelete = sotto => richiesta("DELETE", sotto);
+const ORA_SERVER = { ".sv": "timestamp" }; // Firebase lo sostituisce con l'ora del server (millisecondi)
+
+/* =====================================================================
+   STATO DELL'APP
+   ===================================================================== */
+const S = {
+  nome: "", codice: "",
+  imp: predefinite(),      // impostazioni mostrate (versione = ultima inviata con successo)
+  versioneServer: null,    // versione presente nel database
+  modificato: false,       // ci sono modifiche non ancora inviate
+  inviando: false,
+  offline: false,
+  accessoNegato: false,
+  stato: null,             // ultimo /stato letto dal buddy
+  caricato: false,
+  tab: "occhi"
+};
+
+function salvaCache() {
+  ls.set(LS.cache, JSON.stringify({ chi: S.nome + "\n" + S.codice, imp: S.imp, modificato: S.modificato, versioneServer: S.versioneServer, stato: S.stato }));
+}
+function leggiCache() {
+  const c = ls.json(LS.cache);
+  if (!c || c.chi !== S.nome + "\n" + S.codice) return;
+  S.imp = pulisci(c.imp); S.modificato = !!c.modificato; S.versioneServer = c.versioneServer ?? null; S.stato = c.stato || null;
+}
+
+/* ---------- invio delle impostazioni ---------- */
+let timerInvio, timerRiprova, tentativi = 0;
+
+function cambia(fn) {
+  fn(S.imp);
+  S.modificato = true;
+  salvaCache();
+  render();
+  clearTimeout(timerInvio);
+  timerInvio = setTimeout(invia, 700); // aspetta che l'utente finisca (es. mentre trascina il colore)
+}
+
+async function invia() {
+  clearTimeout(timerInvio); clearTimeout(timerRiprova);
+  if (!S.modificato || S.inviando) return;
+  S.inviando = true; render();
+  const versione = Math.max(Date.now(), (S.imp.versione || 0) + 1);
+  const { versione: _v, ...resto } = S.imp;
+  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, versione };
+  try {
+    await dbPut("impostazioni", dati);
+    // se nel frattempo l'utente ha cambiato altro, resta "modificato" e si reinvia
+    const ancora = JSON.stringify({ ...S.imp, versione: 0 }) !== JSON.stringify({ ...dati, versione: 0 });
+    S.imp.versione = versione; S.versioneServer = versione;
+    S.modificato = ancora; S.offline = false; S.accessoNegato = false; tentativi = 0;
+    salvaCache();
+    if (ancora) setTimeout(invia, 300);
+    pianificaControllo(1500);
+    simulaSeAttivo();
+  } catch (e) {
+    gestisciErrore(e);
+    tentativi++;
+    timerRiprova = setTimeout(invia, Math.min(30000, 3000 * tentativi));
+  } finally {
+    S.inviando = false; render();
+  }
+}
+
+function gestisciErrore(e) {
+  if (e instanceof ErroreDB && (e.status === 401 || e.status === 403)) S.accessoNegato = true;
+  else S.offline = true;
+}
+
+/* ---------- lettura ---------- */
+async function caricaImpostazioni() {
+  try {
+    const dati = await dbGet("impostazioni");
+    S.offline = false; S.accessoNegato = false;
+    if (S.modificato) { invia(); }
+    else if (dati) { S.imp = pulisci(dati); S.versioneServer = S.imp.versione; }
+    else { S.versioneServer = null; }
+    S.caricato = true; salvaCache();
+  } catch (e) { gestisciErrore(e); }
+  render();
+}
+
+let timerControllo;
+function pianificaControllo(ms) {
+  clearTimeout(timerControllo);
+  const attesa = ms ?? 1000 * (statoSync() === "pending" ? CFG.controlloInAttesaSecondi : CFG.controlloSecondi);
+  timerControllo = setTimeout(controllaStato, attesa);
+}
+async function controllaStato() {
+  if (!S.codice) return;
+  if (document.visibilityState === "visible") {
+    try {
+      S.stato = await dbGet("stato");
+      if (!S.inviando && S.offline) { S.offline = false; if (S.modificato) invia(); }
+      S.accessoNegato = false;
+      salvaCache();
+    } catch (e) { gestisciErrore(e); }
+    render();
+  }
+  pianificaControllo();
+}
+
+/* ---------- stato della sincronizzazione ---------- */
+function statoSync() {
+  if (S.accessoNegato) return "auth";
+  if (S.modificato) return S.offline ? "offline" : "saving";
+  if (S.versioneServer == null) return S.caricato ? "none" : (S.offline ? "offline" : "loading");
+  if (S.stato && Number(S.stato.versione) === Number(S.versioneServer)) return "applied";
+  return "pending";
+}
+const TESTI_SYNC = {
+  loading: "Caricamento…",
+  none: "Nessuna modifica inviata",
+  saving: "Salvataggio…",
+  offline: "Non inviato: riprovo appena c'è rete",
+  auth: "Accesso negato: controlla nome e codice",
+  pending: "In attesa del buddy",
+  applied: "Applicato ✓"
+};
+const SPIEGAZIONI_SYNC = {
+  loading: "Sto leggendo le impostazioni dal database.",
+  none: "Il buddy usa ancora le sue impostazioni iniziali. Cambia qualcosa per inviarla.",
+  saving: "Sto salvando la modifica nel database.",
+  offline: "Il telefono non riesce a raggiungere il database. La modifica è salvata qui e la invio da solo.",
+  auth: "Il database ha rifiutato la richiesta. Controlla nome e codice nelle Impostazioni.",
+  pending: "La modifica è salvata. Il buddy la prenderà appena si collega.",
+  applied: "Il buddy sta usando le impostazioni che vedi."
+};
+
+/* =====================================================================
+   DISEGNO DEGLI OCCHI (spazio di lavoro 466 × 466, come lo schermo vero)
+   ===================================================================== */
+const W = 466, C = W / 2, DISTANZA = 98;
+
+function rr(c, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  c.beginPath(); c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+function schiarisci(hex, f) {
+  const n = parseInt(hex.slice(1), 16);
+  const m = v => Math.round(v + (255 - v) * f);
+  return `rgb(${m(n >> 16 & 255)},${m(n >> 8 & 255)},${m(n & 255)})`;
+}
+function conAlfa(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`;
+}
+
+// Ogni forma disegna UN occhio centrato in (0,0). a = { open 0..1, px pupilla x, py, t tempo, lato -1 sinistra / 1 destra }
+const FORME = [
+  // 0 classici: rettangoli arrotondati
+  (c, col, a) => { const w = 112, h = Math.max(10, 150 * a.open); rr(c, -w / 2, -h / 2, w, h, 36); c.fillStyle = col; c.fill(); },
+  // 1 ovali
+  (c, col, a) => { c.beginPath(); c.ellipse(0, 0, 58, Math.max(5, 88 * a.open), 0, 0, Math.PI * 2); c.fillStyle = col; c.fill(); },
+  // 2 tondi: cerchi con riflesso
+  (c, col, a) => {
+    c.save(); c.scale(1, Math.max(.06, a.open));
+    c.beginPath(); c.arc(0, 0, 74, 0, Math.PI * 2); c.fillStyle = col; c.fill();
+    c.beginPath(); c.arc(-26 + a.px * .4, -28 + a.py * .4, 17, 0, Math.PI * 2); c.fillStyle = schiarisci(col, .7); c.fill();
+    c.restore();
+  },
+  // 3 gatto: mandorla con pupilla verticale
+  (c, col, a) => {
+    c.save(); c.rotate(-a.lato * .14); c.scale(1, Math.max(.06, a.open));
+    c.beginPath(); c.moveTo(-78, 0); c.quadraticCurveTo(0, -118, 78, 0); c.quadraticCurveTo(0, 118, -78, 0); c.closePath();
+    c.fillStyle = col; c.fill(); c.clip();
+    c.beginPath(); c.ellipse(a.px * .9, a.py * .5, 11, 54, 0, 0, Math.PI * 2); c.fillStyle = "#000"; c.fill();
+    c.restore();
+  },
+  // 4 assonnati: palpebra abbassata e inclinata
+  (c, col, a) => {
+    const w = 116, h = 140;
+    c.save(); rr(c, -w / 2, -h / 2, w, h, 40); c.clip();
+    const basso = (1 - a.open) * 62;                 // quando sbatte, la palpebra scende
+    const yIn = -4 + basso, yOut = 14 + basso;          // il lato esterno è più basso
+    c.beginPath();
+    c.moveTo(-a.lato * 70, yIn); c.lineTo(a.lato * 70, yOut);
+    c.lineTo(a.lato * 70, 90); c.lineTo(-a.lato * 70, 90); c.closePath();
+    c.fillStyle = col; c.fill();
+    c.restore();
+  },
+  // 5 diaframma: anello e lamelle come un obiettivo fotografico
+  (c, col, a) => {
+    const R = 80, Ri = 68, hole = 6 + 30 * a.open, rot = (1 - a.open) * .9 + a.t * .00015;
+    c.beginPath(); c.arc(0, 0, R, 0, Math.PI * 2); c.fillStyle = col; c.fill();
+    c.beginPath(); c.arc(0, 0, Ri, 0, Math.PI * 2); c.fillStyle = "#000"; c.fill();
+    c.save(); c.beginPath(); c.arc(0, 0, Ri, 0, Math.PI * 2); c.clip();
+    c.fillStyle = conAlfa(col, .38); c.fillRect(-Ri, -Ri, Ri * 2, Ri * 2);
+    const v = []; for (let i = 0; i < 6; i++) { const ang = rot + i * Math.PI / 3; v.push([Math.cos(ang) * hole, Math.sin(ang) * hole]); }
+    c.strokeStyle = col; c.lineWidth = 3; c.lineCap = "round";
+    for (let i = 0; i < 6; i++) {
+      const p = v[i], q = v[(i + 1) % 6], dx = p[0] - q[0], dy = p[1] - q[1], l = Math.hypot(dx, dy) || 1;
+      c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(p[0] + dx / l * 140, p[1] + dy / l * 140); c.stroke();
+    }
+    c.beginPath(); v.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath();
+    c.fillStyle = "#000"; c.fill();
+    c.restore();
+  },
+  // 6 cuore (batte piano)
+  (c, col, a) => {
+    const s = 4.6 * (1 + .045 * Math.max(0, Math.sin(a.t / 260)) ** 8);
+    c.save(); c.scale(s, s * Math.max(.06, a.open)); c.translate(0, -2.5);
+    c.beginPath();
+    for (let i = 0; i <= 64; i++) {
+      const t = i / 64 * Math.PI * 2;
+      const x = 16 * Math.sin(t) ** 3, y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+      i ? c.lineTo(x, y) : c.moveTo(x, y);
+    }
+    c.closePath(); c.fillStyle = col; c.fill(); c.restore();
+  },
+  // 7 stella (luccica e ruota appena)
+  (c, col, a) => {
+    c.save(); c.rotate(Math.sin(a.t / 1400) * .08 * a.lato); c.scale(1, Math.max(.06, a.open));
+    c.beginPath();
+    for (let i = 0; i < 10; i++) { const r = i % 2 ? 36 : 84, ang = -Math.PI / 2 + i * Math.PI / 5; c.lineTo(Math.cos(ang) * r, Math.sin(ang) * r); }
+    c.closePath(); c.fillStyle = col; c.lineJoin = "round"; c.strokeStyle = col; c.lineWidth = 10; c.fill(); c.stroke();
+    c.restore();
+  }
+];
+
+function disegnaOcchi(canvas, stile, colore, a) {
+  const c = canvas.getContext("2d"), k = canvas.width / W;
+  c.setTransform(k, 0, 0, k, 0, 0);
+  c.fillStyle = "#000"; c.fillRect(0, 0, W, W);
+  // gli occhi interi si spostano poco, la pupilla (dove c'è) un po' di più
+  const muovi = stile === 2 || stile === 3 ? .35 : 1;
+  for (const lato of [-1, 1]) {
+    c.save();
+    c.translate(C + lato * DISTANZA + a.px * muovi, C + a.py * muovi);
+    FORME[stile](c, colore, { ...a, lato });
+    c.restore();
+  }
+  if (stile === 4) { // piccole "z" del sonno
+    c.fillStyle = colore; c.textAlign = "center";
+    for (let i = 0; i < 2; i++) {
+      const p = ((a.t / 2600) + i * .5) % 1;
+      c.globalAlpha = a.t ? Math.sin(p * Math.PI) : (i ? 0 : 1);
+      c.font = `700 ${22 + p * 16}px sans-serif`;
+      c.fillText("z", C + 150 + p * 22, C - 100 - p * 50);
+    }
+    c.globalAlpha = 1;
+  }
+}
+
+function adattaCanvas(canvas) {
+  const r = canvas.getBoundingClientRect(), dpr = Math.min(3, window.devicePixelRatio || 1);
+  const px = Math.round((r.width || 120) * dpr);
+  if (px && canvas.width !== px) { canvas.width = px; canvas.height = px; }
+}
+
+/* ---------- animazione dell'anteprima ---------- */
+const anim = { open: 1, px: 0, py: 0, tx: 0, ty: 0, prossimoBattito: 0, battito: -1, prossimoSguardo: 0, raf: 0 };
+const pocoMovimento = matchMedia("(prefers-reduced-motion: reduce)");
+
+function ciclo(t) {
+  anim.raf = 0;
+  const canvas = !$("#onboarding").hidden ? $("#ob-eyes") : (S.tab === "occhi" && !$("#app").hidden ? $("#preview") : null);
+  if (!canvas || document.visibilityState !== "visible") return;
+  const fermo = pocoMovimento.matches;
+  const durata = S.imp.stile === 4 ? 520 : 200;
+  if (!fermo) {
+    if (t > anim.prossimoBattito && anim.battito < 0) anim.battito = t;
+    if (anim.battito >= 0) {
+      const p = (t - anim.battito) / durata;
+      if (p >= 1) { anim.battito = -1; anim.open = 1; anim.prossimoBattito = t + 2200 + Math.random() * 3500; }
+      else anim.open = 1 - Math.sin(p * Math.PI) * .94;
+    }
+    if (t > anim.prossimoSguardo) {
+      const centro = Math.random() < .35;
+      anim.tx = centro ? 0 : (Math.random() * 2 - 1) * 20; anim.ty = centro ? 0 : (Math.random() * 2 - 1) * 12;
+      anim.prossimoSguardo = t + 1400 + Math.random() * 2800;
+    }
+    anim.px += (anim.tx - anim.px) * .12; anim.py += (anim.ty - anim.py) * .12;
+  }
+  const onb = canvas.id === "ob-eyes";
+  disegnaOcchi(canvas, onb ? 0 : S.imp.stile, onb ? "#00E5FF" : S.imp.colore,
+    { open: anim.open, px: anim.px, py: anim.py, t: fermo ? 0 : t });
+  anim.raf = requestAnimationFrame(ciclo);
+}
+function avviaAnimazione() { if (!anim.raf) anim.raf = requestAnimationFrame(ciclo); }
+
+/* =====================================================================
+   COSTRUZIONE DELL'INTERFACCIA
+   ===================================================================== */
+function costruisci() {
+  // stili
+  $("#styles").innerHTML = STILI.map((n, i) =>
+    `<button class="style-btn" role="radio" data-stile="${i}" aria-label="${n}"><canvas width="144" height="144"></canvas>${n}</button>`).join("");
+  // colori
+  $("#swatches").innerHTML = COLORI.map(([hex, n]) =>
+    `<button class="swatch" role="radio" data-colore="${hex}" style="--c:${hex}" aria-label="${n}"></button>`).join("") +
+    `<label class="swatch custom" aria-label="Altro colore" id="swatch-custom"><input type="color" id="color-input" value="#00e5ff"></label>`;
+  // giorni
+  $("#days").innerHTML = GIORNI.map((g, i) =>
+    `<button class="day" data-giorno="${i}" aria-label="${g}" aria-pressed="false">${g[0]}</button>`).join("");
+  // promemoria
+  $("#rem-chips").innerHTML = PROMEMORIA_RAPIDI.map(m =>
+    `<button class="chip" role="radio" data-min="${m}">${m ? m + " min" : "Spento"}</button>`).join("");
+  $("#app-version").textContent = "Desk Buddy · versione " + APP_VERSION;
+}
+
+function disegnaMiniature() {
+  $$("#styles .style-btn").forEach(b => {
+    const cv = b.querySelector("canvas"); adattaCanvas(cv);
+    disegnaOcchi(cv, +b.dataset.stile, S.imp.colore, { open: 1, px: 0, py: 0, t: 0 });
+  });
+}
+
+let ultimoColoreMiniature = null;
+function render() {
+  const imp = S.imp;
+  // colore principale dell'interfaccia = colore degli occhi (se non troppo scuro)
+  const lum = luminanza(imp.colore);
+  const root = document.documentElement.style;
+  if (lum > .06) { root.setProperty("--accent", imp.colore); root.setProperty("--on-accent", lum > .35 ? "#0b0b0d" : "#ffffff"); }
+  else { root.removeProperty("--accent"); root.removeProperty("--on-accent"); }
+
+  // intestazione
+  $("#hdr-nome").textContent = S.nome || "Buddy";
+  const visto = S.stato && typeof S.stato.ultimoContatto === "number" ? S.stato.ultimoContatto : null;
+  const acceso = visto != null && Date.now() - visto < CFG.accesoEntroMinuti * 60000;
+  $("#dot").classList.toggle("on", acceso);
+  $("#hdr-seen").textContent = visto != null ? `visto l'ultima volta: ${fa(visto)}` : "il buddy non si è ancora collegato";
+  const s = statoSync(), sync = $("#sync");
+  if (sync.dataset.s !== s) { sync.dataset.s = s; sync.textContent = TESTI_SYNC[s]; }
+
+  // occhi
+  $$("#styles .style-btn").forEach(b => b.setAttribute("aria-checked", +b.dataset.stile === imp.stile));
+  let pronto = false;
+  $$("#swatches .swatch[data-colore]").forEach(b => { const on = b.dataset.colore === imp.colore; pronto ||= on; b.setAttribute("aria-checked", on); });
+  $("#swatch-custom").setAttribute("aria-checked", !pronto);
+  if (!pronto) $("#swatch-custom").style.boxShadow = `0 0 0 4px ${imp.colore}`; else $("#swatch-custom").style.boxShadow = "";
+  if ($("#color-input").value.toUpperCase() !== imp.colore) $("#color-input").value = imp.colore.toLowerCase();
+  $("#color-hex").textContent = imp.colore;
+  $("#color-dark").hidden = lum > .02;
+  $("#preview-label").textContent = STILI[imp.stile];
+  if (ultimoColoreMiniature !== imp.colore) { ultimoColoreMiniature = imp.colore; disegnaMiniature(); }
+
+  // sveglia
+  const sv = imp.sveglia;
+  $("#alarm-on").checked = sv.attiva;
+  $("#alarm-body").classList.toggle("off", !sv.attiva);
+  const hhmm = `${pad2(sv.ora)}:${pad2(sv.minuto)}`;
+  if (document.activeElement !== $("#alarm-time")) $("#alarm-time").value = hhmm;
+  $$("#days .day").forEach(b => b.setAttribute("aria-pressed", sv.giorni[+b.dataset.giorno]));
+  const giorniTesto = descriviGiorni(sv.giorni);
+  $("#alarm-summary").textContent = sv.attiva ? (giorniTesto ? `Suona alle ${hhmm} · ${giorniTesto}` : `Alle ${hhmm} · nessun giorno`) : "Spenta";
+  $("#alarm-nodays").hidden = !(sv.attiva && !sv.giorni.some(Boolean));
+  const preset = { feriali: [1,1,1,1,1,0,0], tutti: [1,1,1,1,1,1,1], weekend: [0,0,0,0,0,1,1] };
+  $$("#day-presets .chip").forEach(b => b.setAttribute("aria-pressed", preset[b.dataset.preset].every((v, i) => !!v === sv.giorni[i])));
+
+  // promemoria
+  const pm = imp.promemoriaMinuti;
+  $("#rem-num").textContent = pm ? pm : "Spento";
+  $("#rem-unit").innerHTML = pm ? "minuti" : "&nbsp;";
+  $$("#rem-chips .chip").forEach(b => b.setAttribute("aria-checked", +b.dataset.min === pm));
+  $("#rem-minus").disabled = pm <= 0; $("#rem-plus").disabled = pm >= PROMEMORIA_MAX;
+
+  // meteo
+  if (document.activeElement !== $("#city")) $("#city").value = imp.citta;
+  $("#city-hint").textContent = imp.citta ? `Il buddy userà: ${imp.citta}` : "Nessuna città impostata.";
+  $("#city-save").disabled = $("#city").value.trim() === imp.citta;
+
+  // impostazioni
+  if (S.tab === "impostazioni") renderInfo();
+}
+
+function descriviGiorni(g) {
+  const k = g.map(Number).join("");
+  if (k === "1111111") return "tutti i giorni";
+  if (k === "1111100") return "Lun–Ven";
+  if (k === "0000011") return "weekend";
+  return GIORNI.filter((_, i) => g[i]).map(n => n.slice(0, 3)).join(", ");
+}
+
+function renderInfo() {
+  const st = S.stato, righe = [];
+  const visto = st && typeof st.ultimoContatto === "number" ? st.ultimoContatto : null;
+  righe.push(["Ultimo contatto", visto ? `${fa(visto)} (${new Date(visto).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" })})` : "mai"]);
+  righe.push(["Modifiche", TESTI_SYNC[statoSync()]]);
+  if (st && typeof st.stile === "number") righe.push(["Stile in uso", STILI[st.stile] ?? st.stile]);
+  if (st && st.colore) righe.push(["Colore in uso", String(st.colore)]);
+  if (st && st.sveglia) righe.push(["Sveglia in uso", st.sveglia.attiva ? `${pad2(st.sveglia.ora)}:${pad2(st.sveglia.minuto)}` : "spenta"]);
+  if (st && typeof st.promemoriaMinuti === "number") righe.push(["Promemoria in uso", st.promemoriaMinuti ? st.promemoriaMinuti + " min" : "spento"]);
+  if (st && typeof st.citta === "string") righe.push(["Città in uso", st.citta || "—"]);
+  $("#buddy-info").innerHTML = righe.map(([k, v]) => `<dt>${k}</dt><dd></dd>`).join("");
+  $$("#buddy-info dd").forEach((dd, i) => dd.textContent = righe[i][1]); // textContent: niente HTML dal database
+}
+
+/* =====================================================================
+   NAVIGAZIONE
+   ===================================================================== */
+function vai(tab) {
+  S.tab = tab;
+  $$(".screen").forEach(s => s.hidden = s.dataset.screen !== tab);
+  $$(".tab").forEach(b => b.dataset.go === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+  if (tab !== "impostazioni") ls.set(LS.tab, tab);
+  if (tab === "impostazioni") {
+    $("#set-nome").value = S.nome; $("#set-codice").value = S.codice; $("#set-error").textContent = "";
+    $("#test-box").hidden = ls.get(LS.prova) !== "1";
+    $("#sim-auto").checked = ls.get(LS.sim) === "1";
+    mostraInstallazione();
+  }
+  window.scrollTo(0, 0);
+  render();
+  if (tab === "occhi") { requestAnimationFrame(() => { adattaCanvas($("#preview")); disegnaMiniature(); avviaAnimazione(); }); }
+}
+
+/* =====================================================================
+   NOME E CODICE
+   ===================================================================== */
+function salvaCredenziali(nome, codice) {
+  ls.set(LS.nome, nome); ls.set(LS.codice, codice);
+}
+
+// Link tipo  https://…/#nome=Pippo&codice=XXXX
+function leggiLink(testo) {
+  const i = testo.indexOf("#");
+  const p = new URLSearchParams(i >= 0 ? testo.slice(i + 1) : testo);
+  const nome = (p.get("nome") || "").trim(), codice = (p.get("codice") || "").trim();
+  return chiaveValida(nome) && chiaveValida(codice) ? { nome, codice } : null;
+}
+function leggiHash() {
+  if (!location.hash || location.hash.length < 2) return false;
+  const dati = leggiLink(location.hash);
+  // togli SEMPRE l'hash dall'indirizzo, così il codice non resta visibile né nella cronologia della pagina
+  history.replaceState(null, "", location.pathname + location.search);
+  if (!dati) { toast("Il link non contiene nome e codice validi."); return false; }
+  salvaCredenziali(dati.nome, dati.codice);
+  return true;
+}
+
+function avvia() {
+  S.nome = ls.get(LS.nome) || ""; S.codice = ls.get(LS.codice) || "";
+  clearTimeout(timerControllo); clearTimeout(timerInvio); clearTimeout(timerRiprova);
+  if (!chiaveValida(S.nome) || !chiaveValida(S.codice)) {
+    $("#app").hidden = true; $("#onboarding").hidden = false;
+    document.documentElement.style.removeProperty("--accent"); document.documentElement.style.removeProperty("--on-accent");
+    requestAnimationFrame(() => { adattaCanvas($("#ob-eyes")); avviaAnimazione(); });
+    return;
+  }
+  $("#onboarding").hidden = true; $("#app").hidden = false;
+  Object.assign(S, { imp: predefinite(), versioneServer: null, modificato: false, offline: false, accessoNegato: false, stato: null, caricato: false });
+  leggiCache();
+  const tab = ls.get(LS.tab);
+  vai(["occhi", "sveglia", "promemoria", "meteo"].includes(tab) ? tab : "occhi");
+  if (S.modificato) invia(); // modifiche rimaste in sospeso dall'ultima volta (es. senza rete)
+  caricaImpostazioni().then(() => controllaStato());
+}
+
+/* =====================================================================
+   SIMULA BUDDY (strumenti di prova nascosti)
+   ===================================================================== */
+async function simulaApplica(quando) {
+  const { versione, ...valori } = S.imp;
+  if (S.versioneServer == null) { toast("Prima cambia qualcosa, così c'è una versione da applicare."); return; }
+  try {
+    await dbPut("stato", { ...valori, versione: S.versioneServer, ultimoContatto: quando ?? ORA_SERVER });
+    toast("Buddy simulato: stato scritto ✓");
+    controllaStato();
+  } catch (e) { gestisciErrore(e); render(); toast("Non riesco a scrivere lo stato."); }
+}
+let timerSim;
+function simulaSeAttivo() {
+  if (ls.get(LS.prova) !== "1" || ls.get(LS.sim) !== "1") return;
+  clearTimeout(timerSim);
+  timerSim = setTimeout(() => simulaApplica(), 3000);
+}
+
+/* =====================================================================
+   EVENTI
+   ===================================================================== */
+function collegaEventi() {
+  // navigazione
+  $$(".tab").forEach(b => b.addEventListener("click", () => vai(b.dataset.go)));
+  $("#btn-settings").addEventListener("click", () => vai("impostazioni"));
+  $("#btn-back").addEventListener("click", () => vai(ls.get(LS.tab) || "occhi"));
+  $("#sync").addEventListener("click", () => toast(SPIEGAZIONI_SYNC[statoSync()], 4000));
+
+  // occhi
+  $("#styles").addEventListener("click", e => {
+    const b = e.target.closest("[data-stile]"); if (b) cambia(i => i.stile = +b.dataset.stile);
+  });
+  $("#swatches").addEventListener("click", e => {
+    const b = e.target.closest("[data-colore]"); if (b) cambia(i => i.colore = b.dataset.colore);
+  });
+  $("#color-input").addEventListener("input", e => cambia(i => i.colore = e.target.value.toUpperCase()));
+
+  // sveglia
+  $("#alarm-on").addEventListener("change", e => cambia(i => i.sveglia.attiva = e.target.checked));
+  $("#alarm-time").addEventListener("change", e => {
+    const m = /^(\d{1,2}):(\d{2})/.exec(e.target.value); if (!m) return;
+    cambia(i => { i.sveglia.ora = intIn(+m[1], 0, 23, 7); i.sveglia.minuto = intIn(+m[2], 0, 59, 0); });
+  });
+  $("#days").addEventListener("click", e => {
+    const b = e.target.closest("[data-giorno]"); if (b) cambia(i => i.sveglia.giorni[+b.dataset.giorno] = !i.sveglia.giorni[+b.dataset.giorno]);
+  });
+  $("#day-presets").addEventListener("click", e => {
+    const b = e.target.closest("[data-preset]"); if (!b) return;
+    const p = { feriali: [1,1,1,1,1,0,0], tutti: [1,1,1,1,1,1,1], weekend: [0,0,0,0,0,1,1] }[b.dataset.preset];
+    cambia(i => i.sveglia.giorni = p.map(Boolean));
+  });
+
+  // promemoria
+  $("#rem-chips").addEventListener("click", e => {
+    const b = e.target.closest("[data-min]"); if (b) cambia(i => i.promemoriaMinuti = +b.dataset.min);
+  });
+  const passo = d => cambia(i => {
+    const v = Math.round(i.promemoriaMinuti / PROMEMORIA_PASSO) * PROMEMORIA_PASSO + d;
+    i.promemoriaMinuti = Math.max(0, Math.min(PROMEMORIA_MAX, v));
+  });
+  $("#rem-minus").addEventListener("click", () => passo(-PROMEMORIA_PASSO));
+  $("#rem-plus").addEventListener("click", () => passo(PROMEMORIA_PASSO));
+
+  // meteo
+  $("#city").addEventListener("input", () => { $("#city-save").disabled = $("#city").value.trim() === S.imp.citta; });
+  $("#city-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const v = $("#city").value.trim().replace(/\s+/g, " ").slice(0, 60);
+    $("#city").blur();
+    if (v === S.imp.citta) return;
+    cambia(i => i.citta = v);
+    toast(v ? `Città salvata: ${v}` : "Città tolta");
+  });
+
+  // mostra/nascondi codice
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-peek]"); if (!b) return;
+    const inp = document.getElementById(b.dataset.peek);
+    const vedi = inp.type === "password"; inp.type = vedi ? "text" : "password"; b.textContent = vedi ? "Nascondi" : "Mostra";
+  });
+
+  // prima apertura
+  $("#ob-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const nome = $("#ob-nome").value.trim(), codice = $("#ob-codice").value.trim();
+    const err = erroreChiave(nome, "nome") || erroreChiave(codice, "codice");
+    $("#ob-error").textContent = err; if (err) return;
+    salvaCredenziali(nome, codice); avvia();
+  });
+  const daLink = () => {
+    const d = leggiLink($("#ob-link").value.trim());
+    if (d) { salvaCredenziali(d.nome, d.codice); $("#ob-link").value = ""; avvia(); toast(`Collegato a ${d.nome} ✓`); }
+    else if ($("#ob-link").value.trim()) $("#ob-error").textContent = "Il link non contiene nome e codice validi.";
+  };
+  $("#ob-link").addEventListener("change", daLink);
+  $("#ob-link").addEventListener("paste", () => setTimeout(daLink, 0));
+
+  // impostazioni: nome e codice
+  $("#cred-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const nome = $("#set-nome").value.trim(), codice = $("#set-codice").value.trim();
+    const err = erroreChiave(nome, "nome") || erroreChiave(codice, "codice");
+    $("#set-error").textContent = err; if (err) return;
+    if (nome === S.nome && codice === S.codice) { toast("Nessun cambiamento."); return; }
+    if (S.modificato && !confirm("Ci sono modifiche non ancora inviate al buddy attuale: andranno perse. Continuo?")) return;
+    salvaCredenziali(nome, codice); ls.del(LS.cache);
+    avvia(); toast(`Collegato a ${nome} ✓`);
+  });
+  $("#btn-logout").addEventListener("click", () => {
+    if (!confirm("Vuoi scollegare questo telefono dal buddy? Dovrai reinserire nome e codice.")) return;
+    [LS.nome, LS.codice, LS.cache, LS.tab].forEach(k => ls.del(k));
+    $("#ob-nome").value = ""; $("#ob-codice").value = ""; $("#ob-error").textContent = "";
+    avvia();
+  });
+
+  // strumenti di prova: tocca 5 volte la versione dell'app
+  let tocchi = 0, timerTocchi;
+  $("#app-version").addEventListener("click", () => {
+    tocchi++; clearTimeout(timerTocchi); timerTocchi = setTimeout(() => tocchi = 0, 1500);
+    if (tocchi >= 5) { tocchi = 0; ls.set(LS.prova, "1"); $("#test-box").hidden = false; toast("Strumenti di prova attivati"); $("#test-box").scrollIntoView({ behavior: "smooth" }); }
+  });
+  $("#sim-now").addEventListener("click", () => simulaApplica());
+  $("#sim-old").addEventListener("click", () => simulaApplica(Date.now() - 2 * 3600 * 1000));
+  $("#sim-clear").addEventListener("click", async () => {
+    try { await dbDelete("stato"); S.stato = null; toast("Stato cancellato"); render(); renderInfo(); }
+    catch (e) { gestisciErrore(e); render(); }
+  });
+  $("#sim-auto").addEventListener("change", e => { ls.set(LS.sim, e.target.checked ? "1" : "0"); if (e.target.checked && statoSync() === "pending") simulaSeAttivo(); });
+  $("#sim-hide").addEventListener("click", () => { ls.del(LS.prova); ls.del(LS.sim); $("#test-box").hidden = true; });
+
+  // rete e visibilità
+  window.addEventListener("online", () => { if (S.modificato) invia(); controllaStato(); });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && S.codice && !$("#app").hidden) {
+      if (!S.modificato) caricaImpostazioni();
+      controllaStato(); avviaAnimazione();
+    }
+  });
+  window.addEventListener("hashchange", () => { if (leggiHash()) { avvia(); toast(`Collegato a ${S.nome} ✓`); } });
+  window.addEventListener("resize", () => { adattaCanvas($("#preview")); disegnaMiniature(); });
+  setInterval(() => { if (!$("#app").hidden) render(); }, 15000); // aggiorna "X minuti fa"
+}
+
+/* ---------- installazione sulla schermata Home ---------- */
+let promptInstalla = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptInstalla = e; });
+function mostraInstallazione() {
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const box = $("#install-box");
+  if (standalone) { box.hidden = true; return; }
+  box.hidden = false;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (promptInstalla) {
+    $("#install-text").textContent = "Installala per aprirla come un'app, a tutto schermo.";
+    $("#install-btn").hidden = false;
+    $("#install-btn").onclick = async () => { promptInstalla.prompt(); await promptInstalla.userChoice; promptInstalla = null; mostraInstallazione(); };
+  } else {
+    $("#install-btn").hidden = true;
+    $("#install-text").innerHTML = ios
+      ? "In Safari tocca <b>Condividi</b> (il quadrato con la freccia) e poi <b>Aggiungi alla schermata Home</b>. Al primo avvio dall'icona potrebbe chiederti di nuovo nome e codice."
+      : "Nel menu del browser (⋮) scegli <b>Installa app</b> oppure <b>Aggiungi a schermata Home</b>.";
+  }
+}
+
+/* =====================================================================
+   PARTENZA
+   ===================================================================== */
+costruisci();
+collegaEventi();
+leggiHash();
+avvia();
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
