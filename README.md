@@ -1,1 +1,1 @@
-# deskbuddy-app
+# desk-buddy-app
