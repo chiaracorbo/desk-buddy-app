@@ -21,6 +21,8 @@ Ogni buddy ha il suo percorso:
 ```
 /buddy/<codice>/<nome>/impostazioni   ← lo scrive l'app, lo legge il buddy
 /buddy/<codice>/<nome>/stato          ← lo scrive il buddy, lo legge l'app
+/buddy/<codice>/<nome>/partita        ← lo scrive l'app durante un gioco, lo legge il buddy   (sezione 8)
+/buddy/<codice>/<nome>/partitaStato   ← lo scrive il buddy per dire "sono pronto a giocare" (sezione 8)
 ```
 
 - `<codice>` è il codice segreto, `<nome>` il nome del buddy: gli stessi inseriti nel portale **DeskBuddy-Setup**.
@@ -190,6 +192,7 @@ Suggerimenti:
   - pallino verde accanto al nome se l'ultimo contatto è di meno di 3 minuti fa;
   - in Impostazioni → Stato del buddy, le funzioni che il buddy ha **davvero** spente (da `stato.funzioni`).
 - Nella pagina **App** ogni funzione ha il suo interruttore: cambiarlo scrive le impostazioni complete come sempre.
+- **Giochi**: vedi la sezione 8.
 - Gli strumenti di prova ("simula buddy") ricopiano anche `funzioni` nello stato, e possono scrivere delle
   impostazioni "vecchie" senza `funzioni` per provare che l'app le mostri tutte accese.
 - Se il telefono non ha rete, la modifica resta salvata sul telefono e viene inviata appena possibile.
@@ -239,7 +242,7 @@ una con `"stile": 9` deve essere rifiutata.
 
 > Nota: se aggiungi i campi delle proposte 1–3, vanno aggiunti anche alle regole, altrimenti verranno rifiutati.
 >
-> **Importante (novembre 2026):** il file delle regole ora include anche `funzioni`. Se avevi già pubblicato
+> **Importante (novembre 2026):** il file delle regole ora include anche `funzioni`, `partita` e `partitaStato`. Se avevi già pubblicato
 > la versione precedente delle regole, ripubblica quella nuova: la vecchia rifiuterebbe ogni scrittura con `funzioni`
 > (per via di `$altro: false`) e l'app resterebbe su "Non inviato".
 
@@ -249,3 +252,99 @@ una con `"stile": 9` deve essere rifiutata.
   **non mandare il link di configurazione in chat di gruppo**.
 - La protezione "vera" (account, Firebase Authentication) è più complessa da gestire sull'ESP32. Per un oggetto personale
   un codice lungo e casuale + queste regole è un compromesso ragionevole.
+
+---
+
+## 8. Giochi: `partita` e `partitaStato`
+
+Prima versione: **Tris**, **Forza 4**, **Dado**.
+
+**Chi fa cosa**
+- Il **telefono** mostra il tabellone, controlla le mosse e **decide anche le mosse del buddy**
+  (Tris: imbattibile in "difficile", con errori casuali in "facile"; Forza 4: due livelli).
+- Il **buddy** non conosce il tabellone: mostra solo le **reazioni** che gli chiede l'app
+  (pensa, esulta, broncio, pareggio, "tocca a te") e, nel Dado, l'animazione e il risultato.
+
+### `partita` (scritto dall'app)
+
+L'app la scrive tutta insieme (`PUT`) a ogni cambiamento.
+
+```json
+{
+  "id": "pm3x8k2ab12",
+  "gioco": "tris",
+  "stato": "in_corso",
+  "turno": "buddy",
+  "ultimaMossa": { "chi": "giocatore", "posizione": 4 },
+  "esito": null,
+  "reazione": "pensa",
+  "manche": 1,
+  "passo": 7,
+  "difficolta": "difficile",
+  "dado": null,
+  "aggiornato": { ".sv": "timestamp" }
+}
+```
+
+| Campo | Valori | Significato |
+|---|---|---|
+| `id` | testo (max 40) | identifica la partita. Cambia ogni volta che si apre un gioco |
+| `gioco` | `tris` · `forza4` · `dado` | il gioco. In futuro: `dama`, `battaglia`, `moneta`, `palla8`, `indovinaChi` |
+| `stato` | `attesa` · `in_corso` · `finita` | `attesa` = l'app sta chiamando il buddy · `in_corso` = si gioca · `finita` = il buddy torna normale |
+| `turno` | `giocatore` · `buddy` · assente | di chi è il turno. Assente nel Dado, a manche finita e a partita finita |
+| `ultimaMossa` | `{ "chi", "posizione" }` · assente | `chi` = `giocatore` o `buddy`. `posizione`: Tris = casella 0–8 (da sinistra a destra, dall'alto in basso); Forza 4 = colonna 0–6 (da sinistra) |
+| `esito` | `vinto` · `perso` · `pari` · assente | risultato della manche **dal punto di vista di chi gioca col telefono** (`vinto` = ha vinto la persona, quindi il buddy ha perso) |
+| `reazione` | `pensa` · `tocca_a_te` · `esulta` · `broncio` · `pareggio` · `dado` · `nessuna` | cosa deve mostrare il buddy adesso |
+| `manche` | numero da 1 | quale partita della serie ("Nuova partita" la aumenta di 1, con lo stesso `id`) |
+| `passo` | numero | aumenta a **ogni** scrittura: se cambia, c'è qualcosa di nuovo (anche se la `reazione` è la stessa di prima) |
+| `difficolta` | `facile` · `difficile` · assente | solo per i giochi con livelli. Il buddy può usarla per scegliere quanto "vantarsi" |
+| `dado` | `{ "valore": 1–6, "lancio": n }` · assente | solo nel Dado: risultato e numero del lancio (cambia anche se esce lo stesso numero) |
+| `aggiornato` | millisecondi (ora del server) | ultima scrittura dell'app |
+
+I campi "assenti" non sono scritti (Firebase non salva i `null`): il buddy deve trattare un campo mancante come "niente".
+
+Le reazioni:
+- `pensa` → il buddy "riflette" (è il suo turno: l'app sceglie la mossa dopo circa 1–1,5 secondi);
+- `tocca_a_te` → invita la persona a giocare;
+- `esulta` → il buddy ha vinto · `broncio` → il buddy ha perso · `pareggio` → pari;
+- `dado` → animazione del dado, poi mostra `dado.valore`. L'app mostra il risultato dopo circa 1,4 secondi:
+  un'animazione del buddy di 1–1,5 secondi resta in sincronia;
+- `nessuna` → niente di particolare (è quella usata con `stato: finita`).
+
+### `partitaStato` (scritto dal buddy)
+
+```json
+{ "id": "pm3x8k2ab12", "pronto": true, "aggiornato": { ".sv": "timestamp" } }
+```
+
+| Campo | Valori | Significato |
+|---|---|---|
+| `id` | testo | l'`id` della partita a cui risponde (ricopiato da `partita.id`) |
+| `pronto` | vero/falso | `true` = sono in modalità partita · `false` = sono uscito |
+| `aggiornato` | millisecondi | quando ha scritto |
+
+### Come si svolge
+
+1. Tocchi un gioco nell'app → l'app scrive `partita` con un `id` nuovo e `stato: "attesa"`
+   e mostra: *"Sto chiamando <nome>… se va a batteria, toccalo per svegliarlo"*, con il pulsante **Gioca senza buddy**.
+2. Il buddy vede `stato: "attesa"` con un `id` nuovo → entra in modalità partita →
+   scrive `partitaStato` `{ id, pronto: true }`.
+3. L'app controlla `partitaStato` ogni 1,5 secondi: quando trova lo stesso `id` con `pronto: true`, si comincia (`stato: "in_corso"`).
+4. Durante il gioco l'app scrive `partita` a ogni mossa; il buddy mostra la `reazione` ogni volta che `passo` cambia.
+5. La partita finisce (`stato: "finita"`, `reazione: "nessuna"`) quando:
+   - si esce dal gioco (‹ Giochi o un'altra voce del menu);
+   - l'app viene chiusa o messa da parte;
+   - passano **2 minuti senza mosse**.
+   Il buddy torna normale e scrive `partitaStato` `{ id, pronto: false }`.
+6. **Gioca senza buddy**: l'app scrive subito `stato: "finita"` (così un buddy che si sveglia dopo non entra in partita)
+   e poi non scrive più niente fino alla fine di quel gioco.
+
+**Per il codice del buddy**
+- Quando non gioca, leggere `GET <base>/partita/stato.json` ogni pochi secondi (es. 3–5) basta e costa poco;
+  in modalità partita leggere `partita` ogni ~0,5–1 secondo. Per risparmiare batteria si può usare lo streaming
+  di Firebase (`Accept: text/event-stream`), ma non è obbligatorio.
+- Entrare in partita solo se `stato` è `attesa` o `in_corso` **e** `aggiornato` è di meno di 2 minuti fa:
+  così una partita vecchia rimasta nel database non lo "blocca".
+- **Sicurezza:** se in modalità partita `aggiornato` diventa più vecchio di 2 minuti e mezzo (per esempio il telefono
+  si è spento senza poter scrivere "finita"), il buddy esce da solo dalla partita.
+- Se la funzione `funzioni.giochi` è `false`, il buddy ignora le partite.

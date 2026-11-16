@@ -240,6 +240,49 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
 .fn-sub.disabled { cursor: default; }
 .fn-sub.disabled .fn-txt, .fn-sub.disabled .switch { opacity: .4; }
 .fn-sub.disabled .switch input { cursor: default; }
+.fn-main:disabled { cursor: default; }
+
+/* ---------- giochi ---------- */
+.giochi-griglia { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gap); margin-top: 16px; }
+.gioco {
+  aspect-ratio: 1.15; border-radius: var(--radius); padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+  background: color-mix(in srgb, var(--c) 16%, var(--surface));
+  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: left;
+  transition: opacity var(--speed), transform var(--speed);
+}
+.gioco:active { transform: scale(.97); }
+.gioco-ico { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 22%, transparent); color: var(--c); }
+.gioco-ico svg { width: 28px; height: 28px; }
+.gioco-nome { font-weight: 700; font-size: var(--fs-m); }
+.giochi-griglia.spenti .gioco { opacity: .35; filter: grayscale(1); cursor: default; }
+
+.pt-stato { text-align: center; font-size: var(--fs-l); font-weight: 700; margin: 18px 0 0; min-height: 1.4em; }
+.pt-chiamata { text-align: center; margin-top: 18px; }
+.pt-chiamata p { margin: 6px 0 16px; color: var(--text-dim); }
+.pt-onda { width: 64px; height: 64px; margin: 6px auto 4px; border-radius: 50%; background: var(--accent); animation: onda 1.6s ease-out infinite; }
+@keyframes onda { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); } 100% { box-shadow: 0 0 0 26px transparent; } }
+#pt-campo.off { opacity: .35; pointer-events: none; }
+.tris { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: min(100%, 340px); margin: 16px auto 0; }
+.cella { aspect-ratio: 1; border: 0; border-radius: var(--radius-sm); background: var(--surface-2); padding: 18%; display: grid; place-items: center; }
+.cella svg { width: 100%; height: 100%; }
+.cella.g { color: var(--p-g); } .cella.b { color: var(--p-b); }
+.cella.vince { background: color-mix(in srgb, var(--p-g) 22%, var(--surface-2)); }
+.cella:disabled { cursor: default; }
+.f4 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 10px; width: min(100%, 420px); margin: 16px auto 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.buco { aspect-ratio: 1; border: 0; border-radius: 50%; background: #000; padding: 0; transition: background var(--speed); }
+.buco.g { background: var(--p-g); } .buco.b { background: var(--p-b); }
+.buco.vince { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--text); }
+.buco:disabled { cursor: default; }
+.dado-box { display: flex; flex-direction: column; align-items: center; gap: 24px; margin-top: 20px; }
+.dado-faccia { width: 164px; aspect-ratio: 1; border-radius: 34px; background: var(--text); padding: 24px;
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); }
+.dado-faccia.gira { animation: gira .36s linear infinite; }
+@keyframes gira { 0% { transform: rotate(0); } 50% { transform: rotate(12deg) scale(.94); } 100% { transform: rotate(0); } }
+.pip { width: 74%; aspect-ratio: 1; border-radius: 50%; background: #0b0b0d; place-self: center; visibility: hidden; }
+.pip.on { visibility: visible; }
+.dado-box .btn { max-width: 260px; }
 
 .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--gap); }
 .day {
@@ -452,17 +495,44 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
       </form>
     </section>
 
-    <!-- GIOCHI (voce del menu in basso; l'interruttore è funzioni.giochi) -->
+    <!-- GIOCHI: elenco dei giochi (si apre dal menu in basso o dalla scheda Giochi della pagina App) -->
     <section class="screen wrap" id="scr-giochi" data-screen="giochi" hidden>
       <h1>Giochi</h1>
-      <p class="lead">Piccoli giochi da fare con il buddy.</p>
+      <p class="lead">Gioca con <span id="giochi-nome">il buddy</span>: il telefono tiene il tabellone, il buddy fa il tifo.</p>
       <div class="card">
         <div class="row">
           <div><div class="row-label">Giochi attivi</div><div class="row-sub" id="giochi-summary">Accesi</div></div>
           <label class="switch"><input type="checkbox" id="giochi-on" aria-label="Giochi attivi"><span></span></label>
         </div>
       </div>
-      <p class="hint">Da spenti, il buddy non propone giochi. Puoi riaccenderli quando vuoi.</p>
+      <div class="giochi-griglia" id="giochi-griglia"></div>
+      <p class="hint" id="giochi-spenti" hidden>I giochi sono spenti: accendili qui sopra per giocare.</p>
+    </section>
+
+    <!-- PARTITA -->
+    <section class="screen wrap" id="scr-partita" data-screen="partita" data-tab="giochi" hidden>
+      <button class="back" data-go="giochi">‹ Giochi</button>
+      <h1 id="pt-titolo">Gioco</h1>
+      <div class="chips small" id="pt-livelli" role="radiogroup" aria-label="Difficoltà">
+        <button class="chip" role="radio" data-livello="facile">Facile</button>
+        <button class="chip" role="radio" data-livello="difficile">Difficile</button>
+      </div>
+      <div class="card pt-chiamata" id="pt-chiamata">
+        <div class="pt-onda" aria-hidden="true"></div>
+        <p id="pt-chiamata-testo" aria-live="polite"></p>
+        <button class="btn secondary" id="pt-solo">Gioca senza buddy</button>
+        <button class="btn secondary" id="pt-sim-pronto" hidden>Prova: simula buddy pronto</button>
+      </div>
+      <div class="pt-stato" id="pt-stato" aria-live="polite"></div>
+      <div id="pt-campo"></div>
+      <div class="field-gap"></div>
+      <button class="btn" id="pt-nuova" hidden>Nuova partita</button>
+      <div class="card" id="pt-chiusa" hidden>
+        <p class="lead" id="pt-chiusa-testo" style="margin-top:0"></p>
+        <button class="btn" id="pt-ancora">Gioca ancora</button>
+      </div>
+      <p class="hint" id="pt-con"></p>
+      <p class="hint" id="pt-prova" hidden></p>
     </section>
 
     <!-- IMPOSTAZIONI -->
@@ -551,7 +621,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.2.1";
+const APP_VERSION = "1.3.0";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -587,6 +657,7 @@ const FUNZIONI = [
   { chiave: "contoAllaRovescia", nome: "Conto alla rovescia", desc: "Quanto manca a un evento" },
   { chiave: "respiro", nome: "Respiro", desc: "Qualche respiro lento, guidato" },
   { chiave: "tiPenso", nome: "Ti penso", desc: "Un pensiero che arriva sul buddy" },
+  { chiave: "giochi", nome: "Giochi", desc: "Tris, Forza 4 e Dado col buddy", pagina: "giochi" },
   { chiave: "foto", nome: "Fotografia", desc: "Aiuti per chi fotografa", sotto: [
     { chiave: "oraDoro", nome: "Ora d'oro e ora blu", desc: "Avvisa quando c'è la luce più bella" },
     { chiave: "sfida", nome: "Sfida del giorno", desc: "Un'idea di foto nuova ogni giorno" },
@@ -598,7 +669,6 @@ const FUNZIONI = [
 const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa"];
 const NOMI_FUNZIONI = {};
 FUNZIONI.forEach(f => { if (f.chiave) NOMI_FUNZIONI[f.chiave] = f.nome; (f.sotto || []).forEach(s => NOMI_FUNZIONI[s.chiave] = s.nome); });
-NOMI_FUNZIONI.giochi = "Giochi"; // ha una voce sua nel menu in basso, non sta nella pagina App
 
 const LS = {
   nome: "deskbuddy.nome", codice: "deskbuddy.codice", cache: "deskbuddy.cache",
@@ -1028,7 +1098,7 @@ function costruisci() {
       <span class="fn-txt"><span class="fn-name">${f.nome}</span><span class="fn-desc" id="${inp}-desc">${f.desc || ""}</span></span>`;
     // con impostazioni proprie: la scheda apre la pagina; senza: toccare la scheda accende/spegne
     const main = f.pagina
-      ? `<button class="fn-main" data-go="${f.pagina}" aria-label="Impostazioni di ${f.nome}">${testo}${freccia}</button>`
+      ? `<button class="fn-main" data-go="${f.pagina}" aria-label="Apri ${f.nome}">${testo}${freccia}</button>`
       : `<label class="fn-main" for="${inp}">${testo}</label>`;
     const sotto = f.sotto ? `<div class="fn-subs">${f.sotto.map(s => `
       <label class="fn-sub" for="fn-${s.chiave}">
@@ -1104,8 +1174,7 @@ function render() {
 
   // meteo
   // giochi
-  $("#giochi-on").checked = imp.funzioni.giochi;
-  $("#giochi-summary").textContent = imp.funzioni.giochi ? "Accesi" : "Spenti";
+  renderGiochi();
 
   const meteoOn = imp.funzioni.meteo;
   $("#meteo-on").checked = meteoOn;
@@ -1121,6 +1190,7 @@ function render() {
     const id = f.chiave || f.icona, on = fnAccesa(id);
     $(`#fn-${id}`).checked = on;
     $(`[data-card="${id}"]`).classList.toggle("off", !on);
+    if (id === "giochi") $(`[data-card="giochi"] .fn-main`).disabled = !on; // spenti: la scheda resta visibile ma non si apre
     (f.sotto || []).forEach(s => {
       const inp = $(`#fn-${s.chiave}`);
       inp.checked = imp.funzioni[s.chiave];
@@ -1168,12 +1238,14 @@ function renderInfo() {
    ===================================================================== */
 const SCHERMATE = ["occhi", "app", "sveglia", "promemoria", "meteo", "giochi", "impostazioni"];
 function vai(tab) {
+  // uscendo dalla partita la si chiude, così il buddy torna normale
+  if (S.tab === "partita" && tab !== "partita" && G) { chiudiGioco("uscita"); G = null; }
   S.tab = tab;
   let voceMenu = tab;
   $$(".screen").forEach(s => { s.hidden = s.dataset.screen !== tab; if (!s.hidden) voceMenu = s.dataset.tab || tab; });
   // Sveglia, Promemoria e Meteo stanno dentro "App": nel menu resta evidenziata App
   $$(".tab").forEach(b => b.dataset.go === voceMenu ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
-  ls.set(LS.tab, tab);
+  ls.set(LS.tab, tab === "partita" ? "giochi" : tab);
   if (tab === "impostazioni") {
     $("#set-nome").value = S.nome; $("#set-codice").value = S.codice; $("#set-error").textContent = "";
     $("#test-box").hidden = ls.get(LS.prova) !== "1";
@@ -1380,6 +1452,8 @@ function collegaEventi() {
   // rete e visibilità
   window.addEventListener("online", () => { if (S.modificato) invia(); controllaStato(); });
   document.addEventListener("visibilitychange", () => {
+    // app messa da parte o chiusa durante una partita: la chiudo subito (il buddy non resta in attesa)
+    if (document.visibilityState === "hidden" && G && G.fase !== "chiusa") chiudiGioco("nascosta", { keepalive: true });
     if (document.visibilityState === "visible" && S.codice && !$("#app").hidden) {
       if (!S.modificato) caricaImpostazioni();
       controllaStato(); avviaAnimazione();
@@ -1388,6 +1462,440 @@ function collegaEventi() {
   window.addEventListener("hashchange", () => { if (leggiHash()) { avvia(); toast(`Collegato a ${S.nome} ✓`); } });
   window.addEventListener("resize", () => { adattaCanvas($("#preview")); disegnaMiniature(); });
   setInterval(() => { if (!$("#app").hidden) render(); }, 15000); // aggiorna "X minuti fa"
+}
+
+/* =====================================================================
+   GIOCHI COL BUDDY
+   Il telefono tiene il tabellone e decide le mosse del buddy.
+   Il buddy mostra solo le reazioni: legge /partita e risponde in /partitaStato
+   (vedi PROTOCOLLO.md, sezione 8).
+   ===================================================================== */
+const ICONE_GIOCHI = {
+  tris: '<path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>',
+  forza4: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8" cy="9.5" r="1.5"/><circle cx="12" cy="9.5" r="1.5"/><circle cx="16" cy="9.5" r="1.5"/><circle cx="8" cy="14.5" r="1.5"/><circle cx="12" cy="14.5" r="1.5"/><circle cx="16" cy="14.5" r="1.5"/>',
+  dado: '<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="15.5" cy="15.5" r="1.3"/>',
+  dama: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+  battaglia: '<path d="M2 17h20l-2 4H4zM5 17l2-6h10l2 6M12 11V4l5 3-5 2"/>',
+  moneta: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.1 1.1-2 2.5-2s2.5.9 2.5 2-1.1 1.7-2.5 2-2.5.9-2.5 2 1.1 2 2.5 2 2.5-.9 2.5-2"/>',
+  palla8: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3.5"/><path d="M12 8.6v2.8"/>',
+  indovinaChi: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>'
+};
+// Elenco dei giochi. Per aggiungerne uno: scrivi la sua logica in LOGICHE (sotto) e metti visibile: true.
+// livelli: true = si sceglie Facile / Difficile.
+const GIOCHI = [
+  { id: "tris", nome: "Tris", colore: "#FF4FA3", livelli: true, visibile: true },
+  { id: "forza4", nome: "Forza 4", colore: "#2F7BFF", livelli: true, visibile: true },
+  { id: "dado", nome: "Dado", colore: "#FFD60A", visibile: true },
+  { id: "dama", nome: "Dama", colore: "#FF8A00", livelli: true, visibile: false },
+  { id: "battaglia", nome: "Battaglia navale", colore: "#00E5FF", visibile: false },
+  { id: "moneta", nome: "Moneta", colore: "#39FF88", visibile: false },
+  { id: "palla8", nome: "Palla dell'8", colore: "#A970FF", visibile: false },
+  { id: "indovinaChi", nome: "Indovina chi", colore: "#FF3B30", visibile: false }
+];
+const INATTIVITA_MS = 2 * 60 * 1000;   // dopo 2 minuti senza mosse la partita si chiude
+const CONTROLLO_PRONTO_MS = 1500;      // ogni quanto chiedo al buddy se è pronto
+const DADO_GIRO_MS = 1400;             // durata dell'animazione del dado nell'app
+
+/* ---------- Tris ---------- */
+const LINEE_TRIS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function esitoTris(b) {
+  for (const l of LINEE_TRIS) if (b[l[0]] && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return { chi: b[l[0]], linea: l };
+  return b.every(Boolean) ? { chi: null, linea: [] } : null;
+}
+function minimaxTris(b, chi, prof) {
+  const e = esitoTris(b);
+  if (e) return e.chi === "buddy" ? 10 - prof : e.chi === "giocatore" ? prof - 10 : 0;
+  let meglio = chi === "buddy" ? -Infinity : Infinity;
+  for (let i = 0; i < 9; i++) if (!b[i]) {
+    b[i] = chi; const v = minimaxTris(b, chi === "buddy" ? "giocatore" : "buddy", prof + 1); b[i] = null;
+    meglio = chi === "buddy" ? Math.max(meglio, v) : Math.min(meglio, v);
+  }
+  return meglio;
+}
+const caso = a => a[Math.floor(Math.random() * a.length)];
+
+/* ---------- Forza 4 (7 colonne × 6 righe, riga 0 = in alto) ---------- */
+const F4C = 7, F4R = 6;
+function cadutaF4(b, c) { for (let r = F4R - 1; r >= 0; r--) if (!b[r * F4C + c]) return r; return -1; }
+function esitoF4(b) {
+  const dir = [[0, 1], [1, 0], [1, 1], [1, -1]];
+  for (let r = 0; r < F4R; r++) for (let c = 0; c < F4C; c++) {
+    const v = b[r * F4C + c]; if (!v) continue;
+    for (const [dr, dc] of dir) {
+      const linea = [];
+      for (let k = 0; k < 4; k++) {
+        const rr = r + dr * k, cc = c + dc * k;
+        if (rr < 0 || rr >= F4R || cc < 0 || cc >= F4C || b[rr * F4C + cc] !== v) break;
+        linea.push(rr * F4C + cc);
+      }
+      if (linea.length === 4) return { chi: v, linea };
+    }
+  }
+  for (let c = 0; c < F4C; c++) if (!b[c]) return null;
+  return { chi: null, linea: [] };
+}
+function valutaF4(b) {
+  let s = 0;
+  for (let r = 0; r < F4R; r++) { if (b[r * F4C + 3] === "buddy") s += 3; else if (b[r * F4C + 3] === "giocatore") s -= 3; }
+  const dir = [[0, 1], [1, 0], [1, 1], [1, -1]];
+  for (let r = 0; r < F4R; r++) for (let c = 0; c < F4C; c++) for (const [dr, dc] of dir) {
+    const er = r + dr * 3, ec = c + dc * 3;
+    if (er < 0 || er >= F4R || ec < 0 || ec >= F4C) continue;
+    let bu = 0, gi = 0;
+    for (let k = 0; k < 4; k++) { const v = b[(r + dr * k) * F4C + c + dc * k]; if (v === "buddy") bu++; else if (v === "giocatore") gi++; }
+    if (gi === 0) s += bu === 3 ? 6 : bu === 2 ? 2 : 0;
+    if (bu === 0) s -= gi === 3 ? 8 : gi === 2 ? 2 : 0;
+  }
+  return s;
+}
+const ORDINE_F4 = [3, 2, 4, 1, 5, 0, 6];
+function minimaxF4(b, prof, alfa, beta, chi) {
+  const e = esitoF4(b);
+  if (e) return e.chi === "buddy" ? 100000 + prof : e.chi === "giocatore" ? -100000 - prof : 0;
+  if (prof === 0) return valutaF4(b);
+  const max = chi === "buddy";
+  let v = max ? -Infinity : Infinity;
+  for (const c of ORDINE_F4) {
+    const r = cadutaF4(b, c); if (r < 0) continue;
+    b[r * F4C + c] = chi;
+    const x = minimaxF4(b, prof - 1, alfa, beta, max ? "giocatore" : "buddy");
+    b[r * F4C + c] = null;
+    if (max) { v = Math.max(v, x); alfa = Math.max(alfa, v); } else { v = Math.min(v, x); beta = Math.min(beta, v); }
+    if (alfa >= beta) break;
+  }
+  return v;
+}
+function vinceSubitoF4(b, chi) {
+  for (let c = 0; c < F4C; c++) {
+    const r = cadutaF4(b, c); if (r < 0) continue;
+    b[r * F4C + c] = chi; const e = esitoF4(b); b[r * F4C + c] = null;
+    if (e && e.chi === chi) return c;
+  }
+  return -1;
+}
+
+/* ---------- logica di ogni gioco ----------
+   nuovo()            → tabellone vuoto
+   valida(b, pos)     → la mossa si può fare?
+   applica(b, pos, chi)
+   esito(b)           → null (si continua) oppure { chi: "giocatore" | "buddy" | null (pari), linea: [...] }
+   scelta(b, livello) → mossa del buddy */
+const LOGICHE = {
+  tris: {
+    nuovo: () => Array(9).fill(null),
+    valida: (b, p) => p >= 0 && p < 9 && !b[p],
+    applica: (b, p, chi) => { b[p] = chi; },
+    esito: esitoTris,
+    scelta(b, livello) {
+      const vuote = b.map((v, i) => v ? -1 : i).filter(i => i >= 0);
+      if (livello === "facile" && Math.random() < 0.4) return caso(vuote); // errore casuale
+      let meglio = -Infinity, scelte = [];
+      for (const i of vuote) {
+        b[i] = "buddy"; const v = minimaxTris(b, "giocatore", 1); b[i] = null;
+        if (v > meglio) { meglio = v; scelte = [i]; } else if (v === meglio) scelte.push(i);
+      }
+      return caso(scelte);
+    }
+  },
+  forza4: {
+    nuovo: () => Array(F4C * F4R).fill(null),
+    valida: (b, c) => c >= 0 && c < F4C && cadutaF4(b, c) >= 0,
+    applica: (b, c, chi) => { b[cadutaF4(b, c) * F4C + c] = chi; },
+    esito: esitoF4,
+    scelta(b, livello) {
+      const libere = ORDINE_F4.filter(c => cadutaF4(b, c) >= 0);
+      if (livello === "facile") {
+        const vinci = vinceSubitoF4(b, "buddy"); if (vinci >= 0 && Math.random() < 0.85) return vinci;
+        const para = vinceSubitoF4(b, "giocatore"); if (para >= 0 && Math.random() < 0.6) return para;
+        const pesi = libere.flatMap(c => Array(4 - Math.abs(3 - c)).fill(c)); // preferisce il centro
+        return caso(pesi);
+      }
+      let meglio = -Infinity, scelta = libere[0];
+      for (const c of libere) {
+        const r = cadutaF4(b, c); b[r * F4C + c] = "buddy";
+        const v = minimaxF4(b, 5, -Infinity, Infinity, "giocatore");
+        b[r * F4C + c] = null;
+        if (v > meglio) { meglio = v; scelta = c; }
+      }
+      return scelta;
+    }
+  },
+  dado: { nuovo: () => null } // niente tabellone e niente turni: si tira e basta
+};
+
+/* ---------- la partita in corso ---------- */
+let G = null;               // partita aperta (null = nessuna)
+let codaPartita = Promise.resolve();
+const giocoInfo = id => GIOCHI.find(g => g.id === id);
+const LS_LIVELLO = "deskbuddy.livello.";
+
+function apriGioco(id) {
+  if (!S.imp.funzioni.giochi) { toast("I giochi sono spenti: accendili qui sopra."); return; }
+  const info = giocoInfo(id); if (!info || !LOGICHE[id]) return;
+  if (G) chiudiGioco("uscita");
+  G = {
+    gioco: id, id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    fase: "chiamata",            // chiamata → gioco → chiusa
+    conBuddy: true,              // false = "Gioca senza buddy": niente scritture nel database
+    livello: ls.get(LS_LIVELLO + id) === "difficile" ? "difficile" : "facile",
+    manche: 1, passo: 0, inizia: "giocatore",
+    tab: null, turno: null, esito: null, linea: [], ultimaMossa: null, reazione: "nessuna",
+    dado: null, lancio: 0, dadoMostrato: null, gira: false, motivo: "", timer: {}
+  };
+  vai("partita");
+  scriviPartita();
+  attendiPronto();
+  resetInattivita();
+  renderPartita();
+}
+
+const STATO_DB = { chiamata: "attesa", gioco: "in_corso", chiusa: "finita" };
+function datiPartita() {
+  return {
+    id: G.id, gioco: G.gioco, stato: STATO_DB[G.fase],
+    turno: G.turno, ultimaMossa: G.ultimaMossa, esito: G.esito, reazione: G.reazione,
+    manche: G.manche, passo: G.passo,
+    difficolta: giocoInfo(G.gioco).livelli ? G.livello : null,
+    dado: G.dado,
+    aggiornato: ORA_SERVER
+  };
+}
+// Scrive tutta la partita (PUT). Le scritture partono in fila, nell'ordine giusto.
+function scriviPartita(opz = {}) {
+  if (!G || !G.conBuddy) return;
+  G.passo++;
+  const dati = datiPartita();
+  if (opz.keepalive) {
+    // l'app si sta chiudendo: "keepalive" lascia partire la richiesta anche a pagina chiusa
+    try { fetch(percorso("partita"), { method: "PUT", body: JSON.stringify(dati), keepalive: true, cache: "no-store" }).catch(() => {}); } catch {}
+  } else {
+    codaPartita = codaPartita.then(() => dbPut("partita", dati)).catch(() => {});
+  }
+  simulaPartita(dati);
+}
+
+async function attendiPronto() {
+  const g = G; if (!g) return;
+  clearTimeout(g.timer.pronto);
+  if (g.fase !== "chiamata") return;
+  try {
+    const st = await dbGet("partitaStato");
+    if (G === g && g.fase === "chiamata" && st && st.id === g.id && st.pronto === true) { iniziaGioco(); return; }
+  } catch {}
+  if (G === g && g.fase === "chiamata") g.timer.pronto = setTimeout(attendiPronto, CONTROLLO_PRONTO_MS);
+}
+function iniziaGioco() {
+  clearTimeout(G.timer.pronto);
+  G.fase = "gioco";
+  nuovaManche(true);
+}
+function giocaSenzaBuddy() {
+  if (!G || G.fase !== "chiamata") return;
+  G.fase = "chiusa"; scriviPartita();      // avvisa il buddy di lasciar perdere (se si sveglia dopo)
+  G.conBuddy = false;
+  iniziaGioco();
+}
+
+function nuovaManche(prima) {
+  if (!G) return;
+  if (!prima) { G.manche++; G.inizia = G.inizia === "giocatore" ? "buddy" : "giocatore"; }
+  G.tab = LOGICHE[G.gioco].nuovo();
+  G.esito = null; G.linea = []; G.ultimaMossa = null;
+  if (G.gioco === "dado") { G.turno = null; G.reazione = "tocca_a_te"; scriviPartita(); }
+  else if (G.inizia === "buddy") { G.turno = "buddy"; G.reazione = "pensa"; scriviPartita(); mossaBuddyTraPoco(); }
+  else { G.turno = "giocatore"; G.reazione = "tocca_a_te"; scriviPartita(); }
+  resetInattivita();
+  renderPartita();
+}
+
+function mossaGiocatore(pos) {
+  if (!G || G.fase !== "gioco" || G.turno !== "giocatore" || G.esito) return;
+  const L = LOGICHE[G.gioco];
+  if (!L.valida(G.tab, pos)) return;
+  L.applica(G.tab, pos, "giocatore");
+  G.ultimaMossa = { chi: "giocatore", posizione: pos };
+  resetInattivita();
+  if (controllaFine()) return;
+  G.turno = "buddy"; G.reazione = "pensa";
+  scriviPartita(); renderPartita();
+  mossaBuddyTraPoco();
+}
+function mossaBuddyTraPoco() {
+  const g = G;
+  clearTimeout(g.timer.buddy);
+  g.timer.buddy = setTimeout(() => {          // un attimo di "pensa", così sul buddy si vede
+    if (G !== g || g.fase !== "gioco" || g.turno !== "buddy") return;
+    const L = LOGICHE[g.gioco];
+    const pos = L.scelta(g.tab, g.livello);
+    L.applica(g.tab, pos, "buddy");
+    g.ultimaMossa = { chi: "buddy", posizione: pos };
+    resetInattivita();
+    if (controllaFine()) return;
+    g.turno = "giocatore"; g.reazione = "tocca_a_te";
+    scriviPartita(); renderPartita();
+  }, 900 + Math.random() * 700);
+}
+// esito dal punto di vista di chi gioca col telefono: vinto / perso / pari
+function controllaFine() {
+  const e = LOGICHE[G.gioco].esito(G.tab);
+  if (!e) return false;
+  G.linea = e.linea; G.turno = null;
+  G.esito = e.chi === "giocatore" ? "vinto" : e.chi === "buddy" ? "perso" : "pari";
+  G.reazione = { vinto: "broncio", perso: "esulta", pari: "pareggio" }[G.esito];
+  scriviPartita(); renderPartita();
+  return true;
+}
+
+function tiraDado() {
+  if (!G || G.fase !== "gioco" || G.gioco !== "dado" || G.gira) return;
+  const valore = 1 + Math.floor(Math.random() * 6);
+  G.lancio++;
+  G.dado = { valore, lancio: G.lancio };
+  G.reazione = "dado";
+  scriviPartita();            // il buddy parte con la sua animazione insieme all'app
+  resetInattivita();
+  G.gira = true;
+  const g = G, inizio = Date.now();
+  const giro = () => {
+    if (G !== g) return;
+    if (Date.now() - inizio < DADO_GIRO_MS) { g.dadoMostrato = 1 + Math.floor(Math.random() * 6); renderPartita(); g.timer.dado = setTimeout(giro, 90); }
+    else { g.gira = false; g.dadoMostrato = valore; renderPartita(); }
+  };
+  giro();
+}
+
+function resetInattivita() {
+  const g = G; if (!g) return;
+  clearTimeout(g.timer.inattivita);
+  g.timer.inattivita = setTimeout(() => { if (G === g) chiudiGioco("inattivita"); }, INATTIVITA_MS);
+}
+// Chiude la partita: il buddy legge "finita" e torna normale.
+function chiudiGioco(motivo, opz = {}) {
+  if (!G) return;
+  Object.values(G.timer).forEach(clearTimeout);
+  if (G.fase !== "chiusa") {
+    G.fase = "chiusa"; G.motivo = motivo; G.turno = null; G.gira = false;
+    G.reazione = "nessuna";
+    scriviPartita(opz);
+  }
+  renderPartita();
+}
+
+/* ---------- disegno della partita ---------- */
+const SIMBOLO = {
+  giocatore: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  buddy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><circle cx="12" cy="12" r="7"/></svg>'
+};
+const PALLINI_DADO = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+
+function costruisciGiochi() {
+  const svgG = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONE_GIOCHI[k]}</svg>`;
+  $("#giochi-griglia").innerHTML = GIOCHI.filter(g => g.visibile).map(g =>
+    `<button class="gioco" data-gioco="${g.id}" style="--c:${g.colore}"><span class="gioco-ico">${svgG(g.id)}</span><span class="gioco-nome">${g.nome}</span></button>`).join("");
+}
+
+function renderGiochi() {
+  const on = S.imp.funzioni.giochi;
+  $("#giochi-on").checked = on;
+  $("#giochi-summary").textContent = on ? "Accesi" : "Spenti";
+  $("#giochi-griglia").classList.toggle("spenti", !on);
+  $$("#giochi-griglia .gioco").forEach(b => b.disabled = !on);
+  $("#giochi-spenti").hidden = on;
+  $("#giochi-nome").textContent = S.nome || "il buddy";
+}
+
+function coloriPedine() {
+  const lum = luminanza(S.imp.colore);
+  const mio = lum > .06 && lum < .8 ? S.imp.colore : "#00E5FF";
+  const sc = $("#scr-partita").style;
+  sc.setProperty("--p-g", mio); sc.setProperty("--p-b", "#F5F5F7");
+}
+
+function renderPartita() {
+  if (!G) return;
+  const info = giocoInfo(G.gioco), nome = S.nome || "il buddy";
+  $("#pt-titolo").textContent = info.nome;
+  $("#pt-livelli").hidden = !info.livelli;
+  $$("#pt-livelli .chip").forEach(b => b.setAttribute("aria-checked", b.dataset.livello === G.livello));
+  $("#pt-chiamata").hidden = G.fase !== "chiamata";
+  $("#pt-chiamata-testo").textContent = `Sto chiamando ${nome}… se va a batteria, toccalo per svegliarlo`;
+  $("#pt-sim-pronto").hidden = ls.get(LS.prova) !== "1";
+  $("#pt-chiusa").hidden = G.fase !== "chiusa";
+  $("#pt-chiusa-testo").textContent = {
+    inattivita: "Partita chiusa: 2 minuti senza mosse.",
+    nascosta: "Partita chiusa perché l'app è stata messa da parte.",
+    uscita: "Partita chiusa."
+  }[G.motivo] || "Partita chiusa.";
+  coloriPedine();
+
+  // riga di stato
+  let testo = "";
+  if (G.fase === "gioco") {
+    if (G.gioco === "dado") testo = G.gira ? "Il dado gira…" : G.dadoMostrato ? `È uscito ${G.dadoMostrato}` : "Tocca «Tira» per lanciare il dado";
+    else if (G.esito === "vinto") testo = "Hai vinto! 🎉";
+    else if (G.esito === "perso") testo = `Ha vinto ${nome}`;
+    else if (G.esito === "pari") testo = "Pareggio";
+    else testo = G.turno === "buddy" ? `${nome} ci pensa…` : "Tocca a te";
+  }
+  $("#pt-stato").textContent = testo;
+  $("#pt-stato").hidden = !testo;
+  $("#pt-con").textContent = G.fase !== "gioco" ? "" : G.conBuddy ? `Stai giocando con ${nome}.` : "Stai giocando senza il buddy.";
+
+  // campo di gioco
+  const campo = $("#pt-campo");
+  campo.hidden = G.fase === "chiamata";
+  campo.classList.toggle("off", G.fase === "chiusa");
+  const attivo = G.fase === "gioco" && G.turno === "giocatore" && !G.esito;
+  if (!G.tab && G.gioco !== "dado") {
+    campo.innerHTML = ""; // tabellone non ancora pronto (sto chiamando il buddy)
+  } else if (G.gioco === "tris") {
+    campo.className = "tris" + (G.fase === "chiusa" ? " off" : "");
+    campo.innerHTML = G.tab.map((v, i) =>
+      `<button class="cella ${v === "giocatore" ? "g" : v === "buddy" ? "b" : ""}${G.linea.includes(i) ? " vince" : ""}" data-pos="${i}" aria-label="Casella ${i + 1}${v ? (v === "buddy" ? ", del buddy" : ", tua") : ""}" ${!attivo || v ? "disabled" : ""}>${v ? SIMBOLO[v] : ""}</button>`).join("");
+  } else if (G.gioco === "forza4") {
+    campo.className = "f4" + (G.fase === "chiusa" ? " off" : "");
+    campo.innerHTML = G.tab.map((v, i) => {
+      const c = i % F4C;
+      return `<button class="buco ${v === "giocatore" ? "g" : v === "buddy" ? "b" : ""}${G.linea.includes(i) ? " vince" : ""}" data-pos="${c}" aria-label="Colonna ${c + 1}" ${!attivo || cadutaF4(G.tab, c) < 0 ? "disabled" : ""}></button>`;
+    }).join("");
+  } else if (G.gioco === "dado") {
+    campo.className = "dado-box" + (G.fase === "chiusa" ? " off" : "");
+    const v = G.dadoMostrato || 1;
+    campo.innerHTML = `<div class="dado-faccia${G.gira ? " gira" : ""}" aria-hidden="true">${Array.from({ length: 9 }, (_, i) => `<span class="pip${PALLINI_DADO[v].includes(i) ? " on" : ""}"></span>`).join("")}</div>
+      <button class="btn" id="pt-tira" ${G.fase !== "gioco" || G.gira ? "disabled" : ""}>Tira</button>`;
+  }
+  $("#pt-nuova").hidden = !(G.fase === "gioco" && G.gioco !== "dado" && G.esito);
+
+  // strumenti di prova: cosa sta ricevendo il buddy
+  const prova = $("#pt-prova");
+  prova.hidden = ls.get(LS.prova) !== "1" || !G.conBuddy;
+  prova.textContent = `Prova · al buddy: stato ${STATO_DB[G.fase]}, reazione «${G.reazione}», passo ${G.passo}`;
+}
+
+/* ---------- simula buddy: risponde "pronto" come farebbe lui ---------- */
+function simulaPartita(dati) {
+  if (ls.get(LS.prova) !== "1" || ls.get(LS.sim) !== "1") return;
+  if (dati.stato === "attesa") setTimeout(() => simulaPronto(dati.id), 2000);
+  if (dati.stato === "finita") dbPut("partitaStato", { id: dati.id, pronto: false, aggiornato: ORA_SERVER }).catch(() => {});
+}
+function simulaPronto(id) {
+  return dbPut("partitaStato", { id, pronto: true, aggiornato: ORA_SERVER }).catch(() => toast("Non riesco a scrivere partitaStato."));
+}
+
+function collegaGiochi() {
+  $("#giochi-griglia").addEventListener("click", e => { const b = e.target.closest("[data-gioco]"); if (b && !b.disabled) apriGioco(b.dataset.gioco); });
+  $("#pt-campo").addEventListener("click", e => {
+    if (e.target.closest("#pt-tira")) { tiraDado(); return; }
+    const b = e.target.closest("[data-pos]"); if (b && !b.disabled) mossaGiocatore(+b.dataset.pos);
+  });
+  $("#pt-livelli").addEventListener("click", e => {
+    const b = e.target.closest("[data-livello]"); if (!b || !G) return;
+    G.livello = b.dataset.livello; ls.set(LS_LIVELLO + G.gioco, G.livello); renderPartita();
+  });
+  $("#pt-solo").addEventListener("click", giocaSenzaBuddy);
+  $("#pt-sim-pronto").addEventListener("click", () => { if (G) simulaPronto(G.id).then(attendiPronto); });
+  $("#pt-nuova").addEventListener("click", () => nuovaManche(false));
+  $("#pt-ancora").addEventListener("click", () => { if (G) apriGioco(G.gioco); });
 }
 
 /* ---------- installazione sulla schermata Home ---------- */
@@ -1415,7 +1923,9 @@ function mostraInstallazione() {
    PARTENZA
    ===================================================================== */
 costruisci();
+costruisciGiochi();
 collegaEventi();
+collegaGiochi();
 leggiHash();
 avvia();
 if ("serviceWorker" in navigator && location.protocol !== "file:") {

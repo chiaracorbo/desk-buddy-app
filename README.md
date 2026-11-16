@@ -20,7 +20,8 @@ occhi (stile e colore) e funzioni del buddy (accese/spente, con sveglia, promemo
    - **Occhi**: stile e colore;
    - **App**: le funzioni del buddy, ognuna con il suo interruttore. Toccando Sveglia, Promemoria o Meteo
      si aprono le loro impostazioni. Fotografia ha un interruttore generale e quattro sotto-interruttori;
-   - **Giochi**: accende o spegne i giochi del buddy;
+   - **Giochi**: Tris, Forza 4 e Dado da fare col buddy (si apre anche dalla scheda Giochi nella pagina App).
+     Il telefono tiene il tabellone; il buddy fa le sue reazioni. Se il buddy non risponde, c'è **Gioca senza buddy**;
    - **Impostazioni** (⚙︎): nome, codice e stato del buddy.
 
 ### Aggiungerla alla schermata Home
@@ -58,6 +59,8 @@ C'è un pannello nascosto che finge di essere il buddy:
    - **Cancella lo stato**: come se il buddy non si fosse mai collegato;
    - **Simula impostazioni vecchie**: scrive impostazioni senza `funzioni` (come un'app vecchia): l'app deve mostrare
      tutte le funzioni accese e il promemoria spento.
+   - con **Simula buddy acceso**, quando apri un gioco il buddy finto risponde "pronto" dopo 2 secondi.
+     Nella schermata della partita compare anche **Prova: simula buddy pronto** e una riga che dice cosa riceve il buddy.
 
 Scrivono davvero nel database (in `/buddy/<codice>/<nome>/stato`), esattamente come farà il buddy.
 Usa pure un nome di prova (es. `prova`) per non toccare quello vero.

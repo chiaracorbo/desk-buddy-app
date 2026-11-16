@@ -10,48 +10,177 @@
           ".validate": "$nome.length >= 1 && $nome.length <= 64",
           "impostazioni": {
             ".validate": "newData.hasChildren(['stile', 'colore', 'sveglia', 'promemoriaMinuti', 'citta', 'versione'])",
-            "stile": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 7 && newData.val() % 1 == 0" },
-            "colore": { ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)" },
+            "stile": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 7 && newData.val() % 1 == 0"
+            },
+            "colore": {
+              ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)"
+            },
             "sveglia": {
               ".validate": "newData.hasChildren(['attiva', 'ora', 'minuto', 'giorni'])",
-              "attiva": { ".validate": "newData.isBoolean()" },
-              "ora": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 23 && newData.val() % 1 == 0" },
-              "minuto": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59 && newData.val() % 1 == 0" },
+              "attiva": {
+                ".validate": "newData.isBoolean()"
+              },
+              "ora": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 23 && newData.val() % 1 == 0"
+              },
+              "minuto": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59 && newData.val() % 1 == 0"
+              },
               "giorni": {
                 ".validate": "newData.hasChildren(['0', '1', '2', '3', '4', '5', '6'])",
-                "$giorno": { ".validate": "$giorno.matches(/^[0-6]$/) && newData.isBoolean()" }
+                "$giorno": {
+                  ".validate": "$giorno.matches(/^[0-6]$/) && newData.isBoolean()"
+                }
               },
-              "$altro": { ".validate": false }
+              "$altro": {
+                ".validate": false
+              }
             },
-            "promemoriaMinuti": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 240 && newData.val() % 1 == 0" },
-            "citta": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "promemoriaMinuti": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 240 && newData.val() % 1 == 0"
+            },
+            "citta": {
+              ".validate": "newData.isString() && newData.val().length <= 60"
+            },
             "funzioni": {
-              "$funzione": { ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()" }
+              "$funzione": {
+                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
+              }
             },
-            "versione": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 86400000" },
-            "$altro": { ".validate": false }
+            "versione": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 86400000"
+            },
+            "$altro": {
+              ".validate": false
+            }
           },
           "stato": {
             ".validate": "newData.hasChildren(['versione', 'ultimoContatto'])",
-            "stile": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 7" },
-            "colore": { ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)" },
+            "stile": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 7"
+            },
+            "colore": {
+              ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)"
+            },
             "sveglia": {
-              "attiva": { ".validate": "newData.isBoolean()" },
-              "ora": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 23" },
-              "minuto": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59" },
-              "giorni": { "$giorno": { ".validate": "$giorno.matches(/^[0-6]$/) && newData.isBoolean()" } },
-              "$altro": { ".validate": false }
+              "attiva": {
+                ".validate": "newData.isBoolean()"
+              },
+              "ora": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 23"
+              },
+              "minuto": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59"
+              },
+              "giorni": {
+                "$giorno": {
+                  ".validate": "$giorno.matches(/^[0-6]$/) && newData.isBoolean()"
+                }
+              },
+              "$altro": {
+                ".validate": false
+              }
             },
-            "promemoriaMinuti": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 240" },
-            "citta": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "promemoriaMinuti": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 240"
+            },
+            "citta": {
+              ".validate": "newData.isString() && newData.val().length <= 60"
+            },
             "funzioni": {
-              "$funzione": { ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()" }
+              "$funzione": {
+                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
+              }
             },
-            "versione": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-            "ultimoContatto": { ".validate": "newData.isNumber() && newData.val() <= now + 60000" },
-            "$altro": { ".validate": false }
+            "versione": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "ultimoContatto": {
+              ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+            },
+            "$altro": {
+              ".validate": false
+            }
           },
-          "$altro": { ".validate": false }
+          "partita": {
+            ".validate": "newData.hasChildren(['id', 'gioco', 'stato', 'aggiornato'])",
+            "id": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+            },
+            "gioco": {
+              ".validate": "newData.isString() && newData.val().matches(/^(tris|forza4|dado|dama|battaglia|moneta|palla8|indovinaChi)$/)"
+            },
+            "stato": {
+              ".validate": "newData.isString() && newData.val().matches(/^(attesa|in_corso|finita)$/)"
+            },
+            "turno": {
+              ".validate": "newData.isString() && newData.val().matches(/^(giocatore|buddy)$/)"
+            },
+            "ultimaMossa": {
+              ".validate": "newData.hasChildren(['chi', 'posizione'])",
+              "chi": {
+                ".validate": "newData.isString() && newData.val().matches(/^(giocatore|buddy)$/)"
+              },
+              "posizione": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99 && newData.val() % 1 == 0"
+              },
+              "$altro": {
+                ".validate": false
+              }
+            },
+            "esito": {
+              ".validate": "newData.isString() && newData.val().matches(/^(vinto|perso|pari)$/)"
+            },
+            "reazione": {
+              ".validate": "newData.isString() && newData.val().matches(/^(pensa|tocca_a_te|esulta|broncio|pareggio|dado|nessuna)$/)"
+            },
+            "manche": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 100000 && newData.val() % 1 == 0"
+            },
+            "passo": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000 && newData.val() % 1 == 0"
+            },
+            "difficolta": {
+              ".validate": "newData.isString() && newData.val().matches(/^(facile|difficile)$/)"
+            },
+            "dado": {
+              ".validate": "newData.hasChildren(['valore', 'lancio'])",
+              "valore": {
+                ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 6 && newData.val() % 1 == 0"
+              },
+              "lancio": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000 && newData.val() % 1 == 0"
+              },
+              "$altro": {
+                ".validate": false
+              }
+            },
+            "aggiornato": {
+              ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+            },
+            "$altro": {
+              ".validate": false
+            }
+          },
+          "partitaStato": {
+            ".validate": "newData.hasChildren(['id', 'pronto'])",
+            "id": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+            },
+            "pronto": {
+              ".validate": "newData.isBoolean()"
+            },
+            "aggiornato": {
+              ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+            },
+            "$altro": {
+              ".validate": false
+            }
+          },
+          "$altro": {
+            ".validate": false
+          }
         }
       }
     }
