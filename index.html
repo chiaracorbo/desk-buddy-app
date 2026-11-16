@@ -13,7 +13,8 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- "black": barra di stato nera piena, l'app comincia sotto di lei (niente contenuto che ci passa sotto) -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Desk Buddy">
 <script src="config.js"></script>
 <style>
@@ -51,7 +52,7 @@
   --tap: 56px;                 /* altezza minima dei pulsanti */
   --maxw: 560px;               /* larghezza massima su tablet/desktop */
   --preview: min(76vw, 340px); /* diametro dell'anteprima rotonda */
-  --tabbar-h: 70px;
+  --tabbar-h: 54px;            /* altezza del menu in basso (era 70px) */
 
   /* Testo */
   --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -90,7 +91,7 @@ button { cursor: pointer; }
 .topbar {
   position: sticky; top: 0; z-index: 15;
   background: var(--bg);
-  padding-top: calc(env(safe-area-inset-top) + 12px);
+  padding-top: calc(env(safe-area-inset-top) + 28px); /* +16px: il nome resta lontano dalla barra di stato */
   padding-bottom: 12px;
 }
 .topbar .wrap { display: flex; align-items: center; gap: var(--gap); }
@@ -550,7 +551,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.2.1";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 

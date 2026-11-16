@@ -92,5 +92,5 @@ Apri `index.html`: in cima, nella sezione `:root`, ci sono tutti i colori (`--bg
 e le misure (`--radius`, `--tap` = altezza dei pulsanti, `--preview` = grandezza dell'anteprima…).
 `--accent` viene sostituito automaticamente dal colore degli occhi scelto.
 
-Dopo aver cambiato i file, in `sw.js` aumenta il numero in `const CACHE = "deskbuddy-v3"` (es. `v4`):
+Dopo aver cambiato i file, in `sw.js` aumenta il numero in `const CACHE = "deskbuddy-v4"` (es. `v5`):
 così i telefoni scaricano la versione nuova.
