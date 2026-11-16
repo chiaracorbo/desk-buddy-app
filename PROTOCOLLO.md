@@ -95,7 +95,7 @@ Un interruttore acceso/spento per ogni funzione (`true` = accesa, `false` = spen
 | `contoAllaRovescia` | Conto alla rovescia |
 | `respiro` | Respiro |
 | `tiPenso` | Ti penso |
-| `giochi` | Giochi |
+| `giochi` | Giochi (nell'app ha una voce sua nel menu in basso) |
 | `foto` | Fotografia: **interruttore generale** del gruppo |
 | `oraDoro` | Fotografia → Ora d'oro e ora blu |
 | `sfida` | Fotografia → Sfida del giorno |

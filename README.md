@@ -16,10 +16,11 @@ occhi (stile e colore) e funzioni del buddy (accese/spente, con sveglia, promemo
 3. Cambia quello che vuoi: ogni modifica viene salvata subito.
    - **In attesa del buddy** → la modifica è salvata, il buddy non l'ha ancora presa (per esempio è spento).
    - **Applicato ✓** → il buddy la sta usando.
-4. Il menu in basso ha tre voci:
+4. Il menu in basso ha quattro voci:
    - **Occhi**: stile e colore;
-   - **App**: tutte le funzioni del buddy, ognuna con il suo interruttore. Toccando Sveglia, Promemoria o Meteo
+   - **App**: le funzioni del buddy, ognuna con il suo interruttore. Toccando Sveglia, Promemoria o Meteo
      si aprono le loro impostazioni. Fotografia ha un interruttore generale e quattro sotto-interruttori;
+   - **Giochi**: accende o spegne i giochi del buddy;
    - **Impostazioni** (⚙︎): nome, codice e stato del buddy.
 
 ### Aggiungerla alla schermata Home
@@ -91,5 +92,5 @@ Apri `index.html`: in cima, nella sezione `:root`, ci sono tutti i colori (`--bg
 e le misure (`--radius`, `--tap` = altezza dei pulsanti, `--preview` = grandezza dell'anteprima…).
 `--accent` viene sostituito automaticamente dal colore degli occhi scelto.
 
-Dopo aver cambiato i file, in `sw.js` aumenta il numero in `const CACHE = "deskbuddy-v2"` (es. `v3`):
+Dopo aver cambiato i file, in `sw.js` aumenta il numero in `const CACHE = "deskbuddy-v3"` (es. `v4`):
 così i telefoni scaricano la versione nuova.

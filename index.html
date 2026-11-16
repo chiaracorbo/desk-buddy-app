@@ -85,37 +85,40 @@ button { cursor: pointer; }
 /* ---------- struttura ---------- */
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter); }
 
+/* Intestazione: sfondo nero pieno, ferma in alto. Niente trasparenze né sfocature:
+   così il contenuto che scorre non passa mai "sotto" il nome. */
 .topbar {
+  position: sticky; top: 0; z-index: 15;
   background: var(--bg);
-  padding-top: calc(env(safe-area-inset-top) + 10px);
-  padding-bottom: 10px;
+  padding-top: calc(env(safe-area-inset-top) + 12px);
+  padding-bottom: 12px;
 }
-/* nome a sinistra, "visto l'ultima volta" accanto (va a capo solo se non c'è spazio) */
-.buddy-id { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 10px; row-gap: 2px; min-height: 32px; }
+.topbar .wrap { display: flex; align-items: center; gap: var(--gap); }
+/* nome sopra, "visto l'ultima volta" sotto; a destra lo stato delle modifiche */
+.buddy-id { flex: 1; min-width: 0; }
 .buddy-name {
   font-size: var(--fs-l); font-weight: 700; letter-spacing: -.01em;
-  display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%;
+  display: flex; align-items: center; gap: 8px; min-width: 0;
 }
 .buddy-name span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); flex: none; align-self: center; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); flex: none; }
 .dot.on { background: var(--ok); }
-.seen { font-size: var(--fs-xs); color: var(--text-dim); white-space: nowrap; }
+.seen { font-size: var(--fs-xs); color: var(--text-dim); margin: 2px 0 0 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .sync {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; gap: 8px; flex: none;
   border: 1px solid var(--line); background: var(--surface);
-  border-radius: 999px; padding: 8px 14px; font-size: var(--fs-xs); font-weight: 600;
-  max-width: 100%;
+  border-radius: 999px; padding: 0 16px; min-height: 40px; font-size: var(--fs-xs); font-weight: 600;
+  white-space: nowrap; max-width: 52vw; overflow: hidden; text-overflow: ellipsis;
 }
 .sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); flex: none; }
 .sync[data-s="applied"] { color: var(--ok); }
-.sync[data-s="applied"]::before { background: var(--ok); }
+.sync[data-s="applied"]::before { content: "✓"; width: auto; height: auto; background: none; font-weight: 800; }
 .sync[data-s="pending"], .sync[data-s="saving"] { color: var(--warn); }
 .sync[data-s="pending"]::before, .sync[data-s="saving"]::before { background: var(--warn); animation: pulse 1.2s infinite; }
 .sync[data-s="offline"], .sync[data-s="auth"] { color: var(--err); }
 .sync[data-s="offline"]::before, .sync[data-s="auth"]::before { background: var(--err); }
 @keyframes pulse { 50% { opacity: .25; } }
-.sync-row { margin-top: 8px; }
 
 main { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px); }
 .screen { padding-top: 4px; }
@@ -134,11 +137,11 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
 /* ---------- tab bar ---------- */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  background: rgba(10, 10, 12, .92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background: var(--surface); /* pieno, senza sfocatura */
   border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
 }
-.tabbar .wrap { display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 6px; }
+.tabbar .wrap { display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 6px; }
 .tab {
   height: var(--tabbar-h); border: 0; background: none; color: var(--text-faint);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
@@ -153,7 +156,7 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
   width: calc(var(--preview) + 22px); aspect-ratio: 1; border-radius: 50%;
   background: radial-gradient(circle at 30% 25%, #2b2c31, #0b0b0d 60%);
   display: grid; place-items: center;
-  box-shadow: 0 20px 60px -20px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 0 0 1px #33343a;
+  box-shadow: 0 0 44px -8px color-mix(in srgb, var(--accent) 55%, transparent), inset 0 0 0 1px #33343a;
 }
 #preview { width: var(--preview); height: var(--preview); border-radius: 50%; background: #000; display: block; }
 .preview-label { text-align: center; color: var(--text-dim); font-size: var(--fs-s); margin-top: 12px; }
@@ -349,8 +352,6 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
         <div class="buddy-name"><span class="dot" id="dot"></span><span id="hdr-nome">Buddy</span></div>
         <div class="seen" id="hdr-seen">mai visto</div>
       </div>
-    </div>
-    <div class="wrap sync-row">
       <button class="sync" id="sync" data-s="none" aria-live="polite">Caricamento…</button>
     </div>
   </header>
@@ -450,6 +451,19 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
       </form>
     </section>
 
+    <!-- GIOCHI (voce del menu in basso; l'interruttore è funzioni.giochi) -->
+    <section class="screen wrap" id="scr-giochi" data-screen="giochi" hidden>
+      <h1>Giochi</h1>
+      <p class="lead">Piccoli giochi da fare con il buddy.</p>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-label">Giochi attivi</div><div class="row-sub" id="giochi-summary">Accesi</div></div>
+          <label class="switch"><input type="checkbox" id="giochi-on" aria-label="Giochi attivi"><span></span></label>
+        </div>
+      </div>
+      <p class="hint">Da spenti, il buddy non propone giochi. Puoi riaccenderli quando vuoi.</p>
+    </section>
+
     <!-- IMPOSTAZIONI -->
     <section class="screen wrap" id="scr-impostazioni" data-screen="impostazioni" hidden>
       <h1>Impostazioni</h1>
@@ -517,6 +531,10 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
         App
       </button>
+      <button class="tab" data-go="giochi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="12" rx="5"/><path d="M7 11v4M5 13h4M15.5 12.5h.01M18 14.5h.01"/></svg>
+        Giochi
+      </button>
       <button class="tab" data-go="impostazioni">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Impostazioni
@@ -532,7 +550,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -568,7 +586,6 @@ const FUNZIONI = [
   { chiave: "contoAllaRovescia", nome: "Conto alla rovescia", desc: "Quanto manca a un evento" },
   { chiave: "respiro", nome: "Respiro", desc: "Qualche respiro lento, guidato" },
   { chiave: "tiPenso", nome: "Ti penso", desc: "Un pensiero che arriva sul buddy" },
-  { chiave: "giochi", nome: "Giochi", desc: "Piccoli giochi con il buddy" },
   { chiave: "foto", nome: "Fotografia", desc: "Aiuti per chi fotografa", sotto: [
     { chiave: "oraDoro", nome: "Ora d'oro e ora blu", desc: "Avvisa quando c'è la luce più bella" },
     { chiave: "sfida", nome: "Sfida del giorno", desc: "Un'idea di foto nuova ogni giorno" },
@@ -580,6 +597,7 @@ const FUNZIONI = [
 const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa"];
 const NOMI_FUNZIONI = {};
 FUNZIONI.forEach(f => { if (f.chiave) NOMI_FUNZIONI[f.chiave] = f.nome; (f.sotto || []).forEach(s => NOMI_FUNZIONI[s.chiave] = s.nome); });
+NOMI_FUNZIONI.giochi = "Giochi"; // ha una voce sua nel menu in basso, non sta nella pagina App
 
 const LS = {
   nome: "deskbuddy.nome", codice: "deskbuddy.codice", cache: "deskbuddy.cache",
@@ -814,6 +832,11 @@ const TESTI_SYNC = {
   pending: "In attesa del buddy",
   applied: "Applicato ✓"
 };
+// versione corta per il pulsante in alto a destra (toccandolo si legge la spiegazione)
+const TESTI_PILLOLA = {
+  loading: "Caricamento…", none: "Nessuna modifica", saving: "Salvataggio…", offline: "Non inviato",
+  auth: "Accesso negato", pending: "In attesa", applied: "Applicato"
+};
 const SPIEGAZIONI_SYNC = {
   loading: "Sto leggendo le impostazioni dal database.",
   none: "Il buddy usa ancora le sue impostazioni iniziali. Cambia qualcosa per inviarla.",
@@ -1042,7 +1065,7 @@ function render() {
   $("#dot").classList.toggle("on", acceso);
   $("#hdr-seen").textContent = visto != null ? `visto l'ultima volta: ${fa(visto)}` : "il buddy non si è ancora collegato";
   const s = statoSync(), sync = $("#sync");
-  if (sync.dataset.s !== s) { sync.dataset.s = s; sync.textContent = TESTI_SYNC[s]; }
+  if (sync.dataset.s !== s) { sync.dataset.s = s; sync.textContent = TESTI_PILLOLA[s]; sync.setAttribute("aria-label", TESTI_SYNC[s]); }
 
   // occhi
   $$("#styles .style-btn").forEach(b => b.setAttribute("aria-checked", +b.dataset.stile === imp.stile));
@@ -1079,6 +1102,10 @@ function render() {
   $("#rem-minus").disabled = pm <= PROMEMORIA_MIN; $("#rem-plus").disabled = pm >= PROMEMORIA_MAX;
 
   // meteo
+  // giochi
+  $("#giochi-on").checked = imp.funzioni.giochi;
+  $("#giochi-summary").textContent = imp.funzioni.giochi ? "Accesi" : "Spenti";
+
   const meteoOn = imp.funzioni.meteo;
   $("#meteo-on").checked = meteoOn;
   $("#city-form").classList.toggle("off", !meteoOn);
@@ -1138,7 +1165,7 @@ function renderInfo() {
 /* =====================================================================
    NAVIGAZIONE
    ===================================================================== */
-const SCHERMATE = ["occhi", "app", "sveglia", "promemoria", "meteo", "impostazioni"];
+const SCHERMATE = ["occhi", "app", "sveglia", "promemoria", "meteo", "giochi", "impostazioni"];
 function vai(tab) {
   S.tab = tab;
   let voceMenu = tab;
@@ -1234,6 +1261,7 @@ function collegaEventi() {
   });
   $("#rem-on").addEventListener("change", e => cambia(i => i.funzioni.promemoria = e.target.checked));
   $("#meteo-on").addEventListener("change", e => cambia(i => i.funzioni.meteo = e.target.checked));
+  $("#giochi-on").addEventListener("change", e => cambia(i => i.funzioni.giochi = e.target.checked));
   $("#sync").addEventListener("click", () => toast(SPIEGAZIONI_SYNC[statoSync()], 4000));
 
   // occhi
