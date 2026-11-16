@@ -25,6 +25,9 @@
             },
             "promemoriaMinuti": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 240 && newData.val() % 1 == 0" },
             "citta": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "funzioni": {
+              "$funzione": { ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()" }
+            },
             "versione": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 86400000" },
             "$altro": { ".validate": false }
           },
@@ -41,6 +44,9 @@
             },
             "promemoriaMinuti": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 240" },
             "citta": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "funzioni": {
+              "$funzione": { ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()" }
+            },
             "versione": { ".validate": "newData.isNumber() && newData.val() >= 0" },
             "ultimoContatto": { ".validate": "newData.isNumber() && newData.val() <= now + 60000" },
             "$altro": { ".validate": false }

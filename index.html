@@ -90,22 +90,16 @@ button { cursor: pointer; }
   padding-top: calc(env(safe-area-inset-top) + 10px);
   padding-bottom: 10px;
 }
-.topbar .wrap { display: flex; align-items: center; gap: var(--gap); }
-.buddy-id { flex: 1; min-width: 0; }
+/* nome a sinistra, "visto l'ultima volta" accanto (va a capo solo se non c'è spazio) */
+.buddy-id { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 10px; row-gap: 2px; min-height: 32px; }
 .buddy-name {
   font-size: var(--fs-l); font-weight: 700; letter-spacing: -.01em;
-  display: flex; align-items: center; gap: 8px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%;
 }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); flex: none; }
-.dot.on { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
-.seen { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 2px; }
-
-.icon-btn {
-  width: 48px; height: 48px; border-radius: 50%; border: 0;
-  background: var(--surface-2); display: grid; place-items: center; flex: none;
-}
-.icon-btn svg { width: 24px; height: 24px; }
+.buddy-name span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); flex: none; align-self: center; }
+.dot.on { background: var(--ok); }
+.seen { font-size: var(--fs-xs); color: var(--text-dim); white-space: nowrap; }
 
 .sync {
   display: inline-flex; align-items: center; gap: 8px;
@@ -144,7 +138,7 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
   border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
 }
-.tabbar .wrap { display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 6px; }
+.tabbar .wrap { display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 6px; }
 .tab {
   height: var(--tabbar-h); border: 0; background: none; color: var(--text-faint);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
@@ -213,7 +207,35 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
   font-variant-numeric: tabular-nums; min-height: 96px;
 }
 .time-big::-webkit-date-and-time-value { text-align: center; }
-.off .time-big, .off .days { opacity: .45; }
+.off .time-big, .off .days, .off#rem-body, .off#city-form { opacity: .45; }
+
+/* ---------- pagina App: elenco delle funzioni ---------- */
+.fn-list { display: flex; flex-direction: column; gap: var(--gap); margin-top: 16px; }
+.fn-list .card + .card { margin-top: 0; }
+.fn.card { padding: 10px 14px 10px 10px; }
+.fn-row { display: flex; align-items: center; gap: var(--gap); min-height: var(--tap); }
+.fn-main {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;
+  border: 0; background: none; padding: 4px 0; text-align: left; cursor: pointer;
+}
+.fn-ico {
+  width: 44px; height: 44px; border-radius: 14px; flex: none; display: grid; place-items: center;
+  background: var(--surface-2); color: var(--accent); transition: color var(--speed);
+}
+.fn-ico svg { width: 24px; height: 24px; }
+.fn-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; transition: opacity var(--speed); }
+.fn-name { font-weight: 700; }
+.fn-desc { color: var(--text-dim); font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fn-go { color: var(--text-faint); flex: none; width: 18px; height: 18px; }
+.fn.off .fn-ico { color: var(--text-faint); }
+.fn.off .fn-txt { opacity: .45; }
+.fn-subs { border-top: 1px solid var(--line); margin: 8px 0 0 56px; padding-top: 4px; }
+.fn-sub { display: flex; align-items: center; gap: var(--gap); min-height: var(--tap); padding: 6px 0; cursor: pointer; }
+.fn-sub + .fn-sub { border-top: 1px solid var(--line); }
+.fn-sub .fn-desc { white-space: normal; }
+.fn-sub.disabled { cursor: default; }
+.fn-sub.disabled .fn-txt, .fn-sub.disabled .switch { opacity: .4; }
+.fn-sub.disabled .switch input { cursor: default; }
 
 .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--gap); }
 .day {
@@ -327,9 +349,6 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
         <div class="buddy-name"><span class="dot" id="dot"></span><span id="hdr-nome">Buddy</span></div>
         <div class="seen" id="hdr-seen">mai visto</div>
       </div>
-      <button class="icon-btn" id="btn-settings" aria-label="Impostazioni">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
     </div>
     <div class="wrap sync-row">
       <button class="sync" id="sync" data-s="none" aria-live="polite">Caricamento…</button>
@@ -353,8 +372,16 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
       <p class="hint warn" id="color-dark" hidden>Colore molto scuro: sullo schermo nero si vedrà poco.</p>
     </section>
 
+    <!-- APP: elenco delle funzioni (le schede vengono create da costruisci()) -->
+    <section class="screen wrap" id="scr-app" data-screen="app" hidden>
+      <h1>Funzioni</h1>
+      <p class="lead">Accendi o spegni quello che il buddy può fare. Tocca una scheda con la freccia per le sue impostazioni.</p>
+      <div class="fn-list" id="fn-list"></div>
+    </section>
+
     <!-- SVEGLIA -->
-    <section class="screen wrap" id="scr-sveglia" data-screen="sveglia" hidden>
+    <section class="screen wrap" id="scr-sveglia" data-screen="sveglia" data-tab="app" hidden>
+      <button class="back" data-go="app">‹ App</button>
       <h1>Sveglia</h1>
       <div class="card">
         <div class="row">
@@ -377,24 +404,43 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
     </section>
 
     <!-- PROMEMORIA -->
-    <section class="screen wrap" id="scr-promemoria" data-screen="promemoria" hidden>
+    <section class="screen wrap" id="scr-promemoria" data-screen="promemoria" data-tab="app" hidden>
+      <button class="back" data-go="app">‹ App</button>
       <h1>Promemoria</h1>
       <p class="lead">Ogni quanto il buddy ti fa un promemoria.</p>
       <div class="card">
-        <div class="stepper">
-          <button id="rem-minus" aria-label="Meno 5 minuti">−</button>
-          <output id="rem-out" aria-live="polite"><span class="big-num" id="rem-num">Spento</span><span class="big-unit" id="rem-unit">&nbsp;</span></output>
-          <button id="rem-plus" aria-label="Più 5 minuti">+</button>
+        <div class="row">
+          <div><div class="row-label">Promemoria attivo</div><div class="row-sub" id="rem-summary">Spento</div></div>
+          <label class="switch"><input type="checkbox" id="rem-on" aria-label="Promemoria attivo"><span></span></label>
         </div>
       </div>
-      <h2>Scelte rapide</h2>
-      <div class="chips" id="rem-chips" role="radiogroup" aria-label="Intervallo promemoria"></div>
+      <div id="rem-body">
+        <h2>Ogni quanto</h2>
+        <div class="card">
+          <div class="stepper">
+            <button id="rem-minus" aria-label="Meno 5 minuti">−</button>
+            <output id="rem-out" aria-live="polite"><span class="big-num" id="rem-num">30</span><span class="big-unit">minuti</span></output>
+            <button id="rem-plus" aria-label="Più 5 minuti">+</button>
+          </div>
+        </div>
+        <h2>Scelte rapide</h2>
+        <div class="chips" id="rem-chips" role="radiogroup" aria-label="Intervallo promemoria"></div>
+        <p class="hint">Anche da spento, il buddy ricorda ogni quanti minuti avevi scelto.</p>
+      </div>
     </section>
 
     <!-- METEO -->
-    <section class="screen wrap" id="scr-meteo" data-screen="meteo" hidden>
+    <section class="screen wrap" id="scr-meteo" data-screen="meteo" data-tab="app" hidden>
+      <button class="back" data-go="app">‹ App</button>
       <h1>Meteo</h1>
       <p class="lead">Il buddy mostra il meteo di questa città.</p>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-label">Meteo attivo</div><div class="row-sub" id="meteo-summary">Acceso</div></div>
+          <label class="switch"><input type="checkbox" id="meteo-on" aria-label="Meteo attivo"><span></span></label>
+        </div>
+      </div>
+      <div class="field-gap"></div>
       <form id="city-form" class="card" autocomplete="off">
         <label class="field" for="city">Città</label>
         <input class="input" id="city" maxlength="60" placeholder="es. Milano" enterkeyhint="done" autocapitalize="words">
@@ -406,7 +452,6 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 
     <!-- IMPOSTAZIONI -->
     <section class="screen wrap" id="scr-impostazioni" data-screen="impostazioni" hidden>
-      <button class="back" id="btn-back">‹ Indietro</button>
       <h1>Impostazioni</h1>
 
       <h2>Il tuo buddy</h2>
@@ -449,6 +494,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
           <button class="btn secondary" id="sim-now">Simula buddy: applica adesso</button>
           <button class="btn secondary" id="sim-old">Simula buddy visto 2 ore fa</button>
           <button class="btn secondary" id="sim-clear">Cancella lo stato (buddy mai visto)</button>
+          <button class="btn secondary" id="sim-legacy">Simula impostazioni vecchie (senza «funzioni»)</button>
           <button class="btn secondary" id="sim-hide">Nascondi strumenti di prova</button>
         </div>
       </div>
@@ -467,17 +513,13 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
         Occhi
       </button>
-      <button class="tab" data-go="sveglia">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/></svg>
-        Sveglia
+      <button class="tab" data-go="app">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+        App
       </button>
-      <button class="tab" data-go="promemoria">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-        Promemoria
-      </button>
-      <button class="tab" data-go="meteo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.7A4 4 0 0 0 8.1 11"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6z"/></svg>
-        Meteo
+      <button class="tab" data-go="impostazioni">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Impostazioni
       </button>
     </div>
   </nav>
@@ -490,7 +532,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.1.0";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -500,8 +542,44 @@ const COLORI = [
   ["#FF3B30", "Rosso"], ["#FF4FA3", "Rosa"], ["#A970FF", "Viola"], ["#2F7BFF", "Blu"], ["#FFFFFF", "Bianco"]
 ];
 const GIORNI = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
-const PROMEMORIA_RAPIDI = [0, 15, 30, 45, 60, 90, 120];
-const PROMEMORIA_MAX = 240, PROMEMORIA_PASSO = 5;
+const PROMEMORIA_RAPIDI = [15, 30, 45, 60, 90, 120];
+const PROMEMORIA_MIN = 5, PROMEMORIA_MAX = 240, PROMEMORIA_PASSO = 5, PROMEMORIA_PREDEFINITO = 30;
+
+/* ---------- funzioni del buddy (pagina "App") ----------
+   chiave = nome del campo dentro "funzioni" nel database (vedi PROTOCOLLO.md).
+   La sveglia non ha una chiave: il suo interruttore è sveglia.attiva.
+   pagina = schermata che si apre toccando la scheda. sotto = sotto-funzioni (solo Fotografia). */
+const ICONE = {
+  pomodoro: '<circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-3 3-4M9 6.5 12 8l3-1.5"/>',
+  promemoria: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  sveglia: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/>',
+  meteo: '<path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.7A4 4 0 0 0 8.1 11"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6z"/>',
+  contoAllaRovescia: '<path d="M6 2h12M6 22h12M7 2c0 5 5 6 5 10S7 17 7 22M17 2c0 5-5 6-5 10s5 5 5 10"/>',
+  respiro: '<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h7"/>',
+  tiPenso: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/>',
+  giochi: '<rect x="2" y="7" width="20" height="12" rx="5"/><path d="M7 11v4M5 13h4M15.5 12.5h.01M18 14.5h.01"/>',
+  foto: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/>'
+};
+const FUNZIONI = [
+  { chiave: "pomodoro", nome: "Pomodoro", desc: "Lavoro a blocchi, con le pause" },
+  { chiave: "promemoria", nome: "Promemoria", pagina: "promemoria" },
+  { chiave: null, icona: "sveglia", nome: "Sveglia", pagina: "sveglia" },
+  { chiave: "meteo", nome: "Meteo", pagina: "meteo" },
+  { chiave: "contoAllaRovescia", nome: "Conto alla rovescia", desc: "Quanto manca a un evento" },
+  { chiave: "respiro", nome: "Respiro", desc: "Qualche respiro lento, guidato" },
+  { chiave: "tiPenso", nome: "Ti penso", desc: "Un pensiero che arriva sul buddy" },
+  { chiave: "giochi", nome: "Giochi", desc: "Piccoli giochi con il buddy" },
+  { chiave: "foto", nome: "Fotografia", desc: "Aiuti per chi fotografa", sotto: [
+    { chiave: "oraDoro", nome: "Ora d'oro e ora blu", desc: "Avvisa quando c'è la luce più bella" },
+    { chiave: "sfida", nome: "Sfida del giorno", desc: "Un'idea di foto nuova ogni giorno" },
+    { chiave: "diario", nome: "Diario delle uscite", desc: "Tiene il conto delle uscite a fotografare" },
+    { chiave: "delusa", nome: "Faccia delusa", desc: "Il buddy fa il broncio dopo tanti giorni senza foto" }
+  ] }
+];
+// tutte le chiavi di "funzioni", nell'ordine del protocollo
+const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa"];
+const NOMI_FUNZIONI = {};
+FUNZIONI.forEach(f => { if (f.chiave) NOMI_FUNZIONI[f.chiave] = f.nome; (f.sotto || []).forEach(s => NOMI_FUNZIONI[s.chiave] = s.nome); });
 
 const LS = {
   nome: "deskbuddy.nome", codice: "deskbuddy.codice", cache: "deskbuddy.cache",
@@ -513,8 +591,9 @@ function predefinite() {
     stile: 0,
     colore: "#00E5FF",
     sveglia: { attiva: false, ora: 7, minuto: 30, giorni: [true, true, true, true, true, false, false] },
-    promemoriaMinuti: 0,
-    citta: ""
+    promemoriaMinuti: PROMEMORIA_PREDEFINITO,
+    citta: "",
+    funzioni: Object.fromEntries(CHIAVI_FUNZIONI.map(k => [k, true])) // tutto acceso
   };
 }
 
@@ -548,6 +627,12 @@ function pulisci(x) {
   if (!x || typeof x !== "object") return d;
   const sv = (x.sveglia && typeof x.sveglia === "object") ? x.sveglia : {};
   const g = sv.giorni;
+  // "funzioni" manca (buddy vecchio) o manca una voce → quella funzione è accesa
+  const fz = (x.funzioni && typeof x.funzioni === "object") ? x.funzioni : {};
+  const funzioni = Object.fromEntries(CHIAVI_FUNZIONI.map(k => [k, typeof fz[k] === "boolean" ? fz[k] : true]));
+  // nel vecchio protocollo promemoriaMinuti = 0 voleva dire "spento": diventa interruttore spento + minuti predefiniti
+  let minuti = intIn(x.promemoriaMinuti, 0, PROMEMORIA_MAX, d.promemoriaMinuti);
+  if (minuti < PROMEMORIA_MIN) { funzioni.promemoria = false; minuti = PROMEMORIA_PREDEFINITO; }
   return {
     stile: intIn(x.stile, 0, 7, d.stile),
     colore: (typeof x.colore === "string" && /^#[0-9a-fA-F]{6}$/.test(x.colore)) ? x.colore.toUpperCase() : d.colore,
@@ -557,8 +642,9 @@ function pulisci(x) {
       minuto: intIn(sv.minuto, 0, 59, d.sveglia.minuto),
       giorni: g && typeof g === "object" ? Array.from({ length: 7 }, (_, i) => g[i] === true) : d.sveglia.giorni.slice()
     },
-    promemoriaMinuti: intIn(x.promemoriaMinuti, 0, PROMEMORIA_MAX, d.promemoriaMinuti),
+    promemoriaMinuti: minuti,
     citta: typeof x.citta === "string" ? x.citta.slice(0, 60) : d.citta,
+    funzioni,
     versione: typeof x.versione === "number" ? x.versione : null
   };
 }
@@ -653,7 +739,7 @@ async function invia() {
   S.inviando = true; render();
   const versione = Math.max(Date.now(), (S.imp.versione || 0) + 1);
   const { versione: _v, ...resto } = S.imp;
-  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, versione };
+  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, funzioni: { ...resto.funzioni }, versione };
   try {
     await dbPut("impostazioni", dati);
     // se nel frattempo l'utente ha cambiato altro, resta "modificato" e si reinvia
@@ -908,7 +994,28 @@ function costruisci() {
     `<button class="day" data-giorno="${i}" aria-label="${g}" aria-pressed="false">${g[0]}</button>`).join("");
   // promemoria
   $("#rem-chips").innerHTML = PROMEMORIA_RAPIDI.map(m =>
-    `<button class="chip" role="radio" data-min="${m}">${m ? m + " min" : "Spento"}</button>`).join("");
+    `<button class="chip" role="radio" data-min="${m}">${m} min</button>`).join("");
+  // funzioni (pagina App)
+  const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONE[k]}</svg>`;
+  const freccia = `<svg class="fn-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>`;
+  $("#fn-list").innerHTML = FUNZIONI.map(f => {
+    const id = f.chiave || f.icona, inp = `fn-${id}`;
+    const testo = `<span class="fn-ico">${svg(f.icona || f.chiave)}</span>
+      <span class="fn-txt"><span class="fn-name">${f.nome}</span><span class="fn-desc" id="${inp}-desc">${f.desc || ""}</span></span>`;
+    // con impostazioni proprie: la scheda apre la pagina; senza: toccare la scheda accende/spegne
+    const main = f.pagina
+      ? `<button class="fn-main" data-go="${f.pagina}" aria-label="Impostazioni di ${f.nome}">${testo}${freccia}</button>`
+      : `<label class="fn-main" for="${inp}">${testo}</label>`;
+    const sotto = f.sotto ? `<div class="fn-subs">${f.sotto.map(s => `
+      <label class="fn-sub" for="fn-${s.chiave}">
+        <span class="fn-txt"><span class="fn-name">${s.nome}</span><span class="fn-desc">${s.desc}</span></span>
+        <span class="switch"><input type="checkbox" id="fn-${s.chiave}" data-fn="${s.chiave}" aria-label="${s.nome}"><span></span></span>
+      </label>`).join("")}</div>` : "";
+    return `<div class="card fn" data-card="${id}">
+      <div class="fn-row">${main}
+        <label class="switch"><input type="checkbox" id="${inp}" data-fn="${id}" aria-label="${f.nome}"><span></span></label>
+      </div>${sotto}</div>`;
+  }).join("");
   $("#app-version").textContent = "Desk Buddy · versione " + APP_VERSION;
 }
 
@@ -962,17 +1069,40 @@ function render() {
   const preset = { feriali: [1,1,1,1,1,0,0], tutti: [1,1,1,1,1,1,1], weekend: [0,0,0,0,0,1,1] };
   $$("#day-presets .chip").forEach(b => b.setAttribute("aria-pressed", preset[b.dataset.preset].every((v, i) => !!v === sv.giorni[i])));
 
-  // promemoria
-  const pm = imp.promemoriaMinuti;
-  $("#rem-num").textContent = pm ? pm : "Spento";
-  $("#rem-unit").innerHTML = pm ? "minuti" : "&nbsp;";
+  // promemoria (i minuti restano salvati anche da spento)
+  const pm = imp.promemoriaMinuti, pmOn = imp.funzioni.promemoria;
+  $("#rem-on").checked = pmOn;
+  $("#rem-body").classList.toggle("off", !pmOn);
+  $("#rem-summary").textContent = pmOn ? `Ogni ${pm} minuti` : "Spento";
+  $("#rem-num").textContent = pm;
   $$("#rem-chips .chip").forEach(b => b.setAttribute("aria-checked", +b.dataset.min === pm));
-  $("#rem-minus").disabled = pm <= 0; $("#rem-plus").disabled = pm >= PROMEMORIA_MAX;
+  $("#rem-minus").disabled = pm <= PROMEMORIA_MIN; $("#rem-plus").disabled = pm >= PROMEMORIA_MAX;
 
   // meteo
+  const meteoOn = imp.funzioni.meteo;
+  $("#meteo-on").checked = meteoOn;
+  $("#city-form").classList.toggle("off", !meteoOn);
+  $("#meteo-summary").textContent = meteoOn ? "Acceso" : "Spento";
   if (document.activeElement !== $("#city")) $("#city").value = imp.citta;
   $("#city-hint").textContent = imp.citta ? `Il buddy userà: ${imp.citta}` : "Nessuna città impostata.";
   $("#city-save").disabled = $("#city").value.trim() === imp.citta;
+
+  // pagina App
+  const fnAccesa = k => k === "sveglia" ? sv.attiva : imp.funzioni[k];
+  FUNZIONI.forEach(f => {
+    const id = f.chiave || f.icona, on = fnAccesa(id);
+    $(`#fn-${id}`).checked = on;
+    $(`[data-card="${id}"]`).classList.toggle("off", !on);
+    (f.sotto || []).forEach(s => {
+      const inp = $(`#fn-${s.chiave}`);
+      inp.checked = imp.funzioni[s.chiave];
+      inp.disabled = !on; // generale spento → sotto-interruttori bloccati (ma il loro valore resta)
+      inp.closest(".fn-sub").classList.toggle("disabled", !on);
+    });
+  });
+  $("#fn-sveglia-desc").textContent = giorniTesto ? `Suona alle ${hhmm} · ${giorniTesto}` : `Alle ${hhmm} · nessun giorno`;
+  $("#fn-promemoria-desc").textContent = `Ti avvisa ogni ${pm} minuti`;
+  $("#fn-meteo-desc").textContent = imp.citta ? `Il tempo a ${imp.citta}` : "Scegli la città";
 
   // impostazioni
   if (S.tab === "impostazioni") renderInfo();
@@ -994,8 +1124,13 @@ function renderInfo() {
   if (st && typeof st.stile === "number") righe.push(["Stile in uso", STILI[st.stile] ?? st.stile]);
   if (st && st.colore) righe.push(["Colore in uso", String(st.colore)]);
   if (st && st.sveglia) righe.push(["Sveglia in uso", st.sveglia.attiva ? `${pad2(st.sveglia.ora)}:${pad2(st.sveglia.minuto)}` : "spenta"]);
-  if (st && typeof st.promemoriaMinuti === "number") righe.push(["Promemoria in uso", st.promemoriaMinuti ? st.promemoriaMinuti + " min" : "spento"]);
+  if (st && typeof st.promemoriaMinuti === "number") righe.push(["Promemoria in uso", st.promemoriaMinuti ? st.promemoriaMinuti + " min" : "0 min"]);
   if (st && typeof st.citta === "string") righe.push(["Città in uso", st.citta || "—"]);
+  if (st) {
+    const fz = st.funzioni && typeof st.funzioni === "object" ? st.funzioni : null;
+    const spente = fz ? CHIAVI_FUNZIONI.filter(k => fz[k] === false).map(k => NOMI_FUNZIONI[k]) : [];
+    righe.push(["Funzioni spente", !fz ? "non indicate (tutto acceso)" : spente.length ? spente.join(", ") : "nessuna"]);
+  }
   $("#buddy-info").innerHTML = righe.map(([k, v]) => `<dt>${k}</dt><dd></dd>`).join("");
   $$("#buddy-info dd").forEach((dd, i) => dd.textContent = righe[i][1]); // textContent: niente HTML dal database
 }
@@ -1003,11 +1138,14 @@ function renderInfo() {
 /* =====================================================================
    NAVIGAZIONE
    ===================================================================== */
+const SCHERMATE = ["occhi", "app", "sveglia", "promemoria", "meteo", "impostazioni"];
 function vai(tab) {
   S.tab = tab;
-  $$(".screen").forEach(s => s.hidden = s.dataset.screen !== tab);
-  $$(".tab").forEach(b => b.dataset.go === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
-  if (tab !== "impostazioni") ls.set(LS.tab, tab);
+  let voceMenu = tab;
+  $$(".screen").forEach(s => { s.hidden = s.dataset.screen !== tab; if (!s.hidden) voceMenu = s.dataset.tab || tab; });
+  // Sveglia, Promemoria e Meteo stanno dentro "App": nel menu resta evidenziata App
+  $$(".tab").forEach(b => b.dataset.go === voceMenu ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+  ls.set(LS.tab, tab);
   if (tab === "impostazioni") {
     $("#set-nome").value = S.nome; $("#set-codice").value = S.codice; $("#set-error").textContent = "";
     $("#test-box").hidden = ls.get(LS.prova) !== "1";
@@ -1056,7 +1194,7 @@ function avvia() {
   Object.assign(S, { imp: predefinite(), versioneServer: null, modificato: false, offline: false, accessoNegato: false, stato: null, caricato: false });
   leggiCache();
   const tab = ls.get(LS.tab);
-  vai(["occhi", "sveglia", "promemoria", "meteo"].includes(tab) ? tab : "occhi");
+  vai(SCHERMATE.includes(tab) ? tab : "occhi");
   if (S.modificato) invia(); // modifiche rimaste in sospeso dall'ultima volta (es. senza rete)
   caricaImpostazioni().then(() => controllaStato());
 }
@@ -1085,9 +1223,17 @@ function simulaSeAttivo() {
    ===================================================================== */
 function collegaEventi() {
   // navigazione
-  $$(".tab").forEach(b => b.addEventListener("click", () => vai(b.dataset.go)));
-  $("#btn-settings").addEventListener("click", () => vai("impostazioni"));
-  $("#btn-back").addEventListener("click", () => vai(ls.get(LS.tab) || "occhi"));
+  // menu in basso, schede con la freccia e pulsanti "‹ App"
+  document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) vai(b.dataset.go); });
+
+  // pagina App: interruttori delle funzioni
+  $("#fn-list").addEventListener("change", e => {
+    const k = e.target.dataset.fn; if (!k) return;
+    const on = e.target.checked;
+    cambia(i => { if (k === "sveglia") i.sveglia.attiva = on; else i.funzioni[k] = on; });
+  });
+  $("#rem-on").addEventListener("change", e => cambia(i => i.funzioni.promemoria = e.target.checked));
+  $("#meteo-on").addEventListener("change", e => cambia(i => i.funzioni.meteo = e.target.checked));
   $("#sync").addEventListener("click", () => toast(SPIEGAZIONI_SYNC[statoSync()], 4000));
 
   // occhi
@@ -1120,7 +1266,7 @@ function collegaEventi() {
   });
   const passo = d => cambia(i => {
     const v = Math.round(i.promemoriaMinuti / PROMEMORIA_PASSO) * PROMEMORIA_PASSO + d;
-    i.promemoriaMinuti = Math.max(0, Math.min(PROMEMORIA_MAX, v));
+    i.promemoriaMinuti = Math.max(PROMEMORIA_MIN, Math.min(PROMEMORIA_MAX, v));
   });
   $("#rem-minus").addEventListener("click", () => passo(-PROMEMORIA_PASSO));
   $("#rem-plus").addEventListener("click", () => passo(PROMEMORIA_PASSO));
@@ -1188,6 +1334,16 @@ function collegaEventi() {
   $("#sim-clear").addEventListener("click", async () => {
     try { await dbDelete("stato"); S.stato = null; toast("Stato cancellato"); render(); renderInfo(); }
     catch (e) { gestisciErrore(e); render(); }
+  });
+  // come un buddy/app vecchi: impostazioni senza "funzioni" e con promemoria a 0 (= spento nel vecchio protocollo)
+  $("#sim-legacy").addEventListener("click", async () => {
+    if (S.modificato) { toast("Aspetta che le modifiche siano inviate e riprova."); return; }
+    const { versione: _v, funzioni: _f, ...vecchie } = S.imp;
+    try {
+      await dbPut("impostazioni", { ...vecchie, promemoriaMinuti: 0, versione: Date.now() });
+      await caricaImpostazioni();
+      toast("Impostazioni vecchie scritte: tutto acceso, promemoria spento");
+    } catch (e) { gestisciErrore(e); render(); toast("Non riesco a scrivere le impostazioni."); }
   });
   $("#sim-auto").addEventListener("change", e => { ls.set(LS.sim, e.target.checked ? "1" : "0"); if (e.target.checked && statoSync() === "pending") simulaSeAttivo(); });
   $("#sim-hide").addEventListener("click", () => { ls.del(LS.prova); ls.del(LS.sim); $("#test-box").hidden = true; });

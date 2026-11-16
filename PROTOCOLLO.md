@@ -52,6 +52,20 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
   },
   "promemoriaMinuti": 45,
   "citta": "Torino",
+  "funzioni": {
+    "pomodoro": true,
+    "promemoria": true,
+    "meteo": true,
+    "contoAllaRovescia": false,
+    "respiro": true,
+    "tiPenso": true,
+    "giochi": true,
+    "foto": true,
+    "oraDoro": true,
+    "sfida": false,
+    "diario": true,
+    "delusa": true
+  },
   "versione": 1794776259675
 }
 ```
@@ -60,13 +74,45 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
 |---|---|---|---|
 | `stile` | numero intero | 0–7 | 0 classici · 1 ovali · 2 tondi · 3 gatto · 4 assonnati · 5 diaframma · 6 cuore · 7 stella |
 | `colore` | testo | `"#RRGGBB"` (sempre maiuscolo) | colore degli occhi |
-| `sveglia.attiva` | vero/falso | `true` / `false` | sveglia accesa o spenta |
+| `sveglia.attiva` | vero/falso | `true` / `false` | sveglia accesa o spenta (è anche l'interruttore della Sveglia nella pagina App) |
 | `sveglia.ora` | numero intero | 0–23 | ora (formato 24 ore) |
 | `sveglia.minuto` | numero intero | 0–59 | minuti |
 | `sveglia.giorni` | lista di 7 vero/falso | posizione 0 = **lunedì** … 6 = **domenica** | giorni in cui suona. Tutti `false` = non suona mai |
-| `promemoriaMinuti` | numero intero | 0–240 (l'app usa passi di 5) | ogni quanti minuti fare il promemoria. **0 = spento** |
+| `promemoriaMinuti` | numero intero | 5–240 (l'app usa passi di 5) | ogni quanti minuti fare il promemoria. Resta salvato anche quando il promemoria è spento. Vedi nota sotto per lo `0` |
 | `citta` | testo | massimo 60 caratteri, può essere `""` | città del meteo. `""` = nessuna città |
+| `funzioni` | oggetto di vero/falso | vedi tabella sotto | quali funzioni del buddy sono accese |
 | `versione` | numero intero | millisecondi dal 1/1/1970 | "numero di serie" della modifica: cambia ogni volta |
+
+### L'oggetto `funzioni`
+
+Un interruttore acceso/spento per ogni funzione (`true` = accesa, `false` = spenta).
+
+| Chiave | Funzione |
+|---|---|
+| `pomodoro` | Pomodoro |
+| `promemoria` | Promemoria (i minuti sono in `promemoriaMinuti`) |
+| `meteo` | Meteo (la città è in `citta`) |
+| `contoAllaRovescia` | Conto alla rovescia |
+| `respiro` | Respiro |
+| `tiPenso` | Ti penso |
+| `giochi` | Giochi |
+| `foto` | Fotografia: **interruttore generale** del gruppo |
+| `oraDoro` | Fotografia → Ora d'oro e ora blu |
+| `sfida` | Fotografia → Sfida del giorno |
+| `diario` | Fotografia → Diario delle uscite |
+| `delusa` | Fotografia → Faccia delusa dopo tanti giorni senza foto |
+
+Regole:
+
+- **La Sveglia non è dentro `funzioni`**: il suo interruttore è il già esistente `sveglia.attiva`.
+- **Fotografia è un gruppo**: una sotto-funzione (`oraDoro`, `sfida`, `diario`, `delusa`) è attiva solo se
+  sono `true` **sia** lei **sia** `foto`. Quando `foto` è `false` l'app conserva i valori delle sotto-funzioni
+  (così riaccendendo `foto` tornano come prima), ma il buddy deve considerarle tutte spente.
+- **Promemoria**: l'interruttore è `funzioni.promemoria`. Il promemoria suona solo se `funzioni.promemoria` è `true`
+  **e** `promemoriaMinuti` è almeno 5. Per compatibilità con il vecchio protocollo, `promemoriaMinuti: 0` vuol dire
+  ancora "spento" (l'app, se lo trova, lo mostra come interruttore spento e propone 30 minuti).
+- **Buddy e app vecchi**: se `funzioni` manca del tutto, o manca una sua voce, quella funzione va considerata **accesa**.
+- Una funzione spenta resta visibile (in grigio) nella pagina App, così si può riaccendere in qualsiasi momento.
 
 **Attenzione per il codice del buddy**
 
@@ -91,12 +137,15 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
   "sveglia": { "attiva": true, "ora": 7, "minuto": 30, "giorni": [true, true, true, true, true, false, false] },
   "promemoriaMinuti": 45,
   "citta": "Torino",
+  "funzioni": { "pomodoro": true, "promemoria": true, "meteo": true, "contoAllaRovescia": false, "respiro": true, "tiPenso": true, "giochi": true, "foto": true, "oraDoro": true, "sfida": false, "diario": true, "delusa": true },
   "versione": 1794776259675,
   "ultimoContatto": { ".sv": "timestamp" }
 }
 ```
 
 - Stessi campi delle impostazioni, con i valori **effettivamente in uso**.
+- `funzioni`: i valori **reali** del buddy, tutte e 12 le chiavi (anche quelle che ha ricevuto mancanti e ha considerato accese).
+  Le sotto-funzioni della Fotografia si scrivono con il loro valore così com'è, anche quando `foto` è `false`.
 - `versione`: la versione delle impostazioni applicate (ricopiata). Se il buddy non ha mai ricevuto impostazioni, `0`.
 - `ultimoContatto`: l'ora in millisecondi. **Consiglio:** scrivi letteralmente `{".sv": "timestamp"}`:
   Firebase la sostituisce da solo con l'ora esatta del server. Così non serve che l'orologio del buddy sia giusto.
@@ -138,7 +187,11 @@ Suggerimenti:
   - **"In attesa del buddy"** finché `stato.versione` ≠ `impostazioni.versione`;
   - **"Applicato ✓"** quando sono uguali;
   - **"visto l'ultima volta: X fa"** da `stato.ultimoContatto`;
-  - pallino verde accanto al nome se l'ultimo contatto è di meno di 3 minuti fa.
+  - pallino verde accanto al nome se l'ultimo contatto è di meno di 3 minuti fa;
+  - in Impostazioni → Stato del buddy, le funzioni che il buddy ha **davvero** spente (da `stato.funzioni`).
+- Nella pagina **App** ogni funzione ha il suo interruttore: cambiarlo scrive le impostazioni complete come sempre.
+- Gli strumenti di prova ("simula buddy") ricopiano anche `funzioni` nello stato, e possono scrivere delle
+  impostazioni "vecchie" senza `funzioni` per provare che l'app le mostri tutte accese.
 - Se il telefono non ha rete, la modifica resta salvata sul telefono e viene inviata appena possibile.
 
 ---
@@ -185,6 +238,10 @@ Prima prova con il **Simulatore regole** (Rules Playground) nella stessa pagina:
 una con `"stile": 9` deve essere rifiutata.
 
 > Nota: se aggiungi i campi delle proposte 1–3, vanno aggiunti anche alle regole, altrimenti verranno rifiutati.
+>
+> **Importante (novembre 2026):** il file delle regole ora include anche `funzioni`. Se avevi già pubblicato
+> la versione precedente delle regole, ripubblica quella nuova: la vecchia rifiuterebbe ogni scrittura con `funzioni`
+> (per via di `$altro: false`) e l'app resterebbe su "Non inviato".
 
 ### Limiti che restano
 
