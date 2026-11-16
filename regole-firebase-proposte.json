@@ -125,6 +125,15 @@
               "posizione": {
                 ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99 && newData.val() % 1 == 0"
               },
+              "da": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 63 && newData.val() % 1 == 0"
+              },
+              "prese": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 12 && newData.val() % 1 == 0"
+              },
+              "risultato": {
+                ".validate": "newData.isString() && newData.val().matches(/^(acqua|colpito|affondato)$/)"
+              },
               "$altro": {
                 ".validate": false
               }
@@ -133,7 +142,7 @@
               ".validate": "newData.isString() && newData.val().matches(/^(vinto|perso|pari)$/)"
             },
             "reazione": {
-              ".validate": "newData.isString() && newData.val().matches(/^(pensa|tocca_a_te|esulta|broncio|pareggio|dado|nessuna)$/)"
+              ".validate": "newData.isString() && newData.val().matches(/^(pensa|tocca_a_te|esulta|broncio|pareggio|dado|nessuna|mangiato|sorrisetto|dama|colpito|affondato|acqua|broncio_leggero)$/)"
             },
             "manche": {
               ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 100000 && newData.val() % 1 == 0"

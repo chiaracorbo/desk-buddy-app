@@ -283,6 +283,44 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
 .pip { width: 74%; aspect-ratio: 1; border-radius: 50%; background: #0b0b0d; place-self: center; visibility: hidden; }
 .pip.on { visibility: visible; }
 .dado-box .btn { max-width: 260px; }
+.pt-notizia { text-align: center; color: var(--text-dim); font-size: var(--fs-s); min-height: 1.4em; margin-top: 2px; }
+
+/* dama */
+.dama { display: grid; grid-template-columns: repeat(8, 1fr); width: min(100%, 420px); margin: 14px auto 0;
+  border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); }
+.dq { aspect-ratio: 1; border: 0; padding: 0; background: #3a3b44; display: grid; place-items: center; position: relative; }
+.dq.scura { background: #17181d; }
+.dq.ultima { background: color-mix(in srgb, var(--p-g) 18%, #17181d); }
+.dq.meta::after { content: ""; width: 30%; aspect-ratio: 1; border-radius: 50%; background: var(--p-g); opacity: .8; }
+.dq:disabled { cursor: default; }
+.pz { width: 78%; aspect-ratio: 1; border-radius: 50%; position: relative; transition: transform var(--speed); }
+.pz.g { background: var(--p-g); } .pz.b { background: var(--p-b); }
+.pz.re::after { content: ""; position: absolute; inset: 24%; border-radius: 50%; border: 3px solid rgba(0, 0, 0, .55); }
+.pz.sel { transform: scale(1.1); box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--text); }
+.pz.obbligo { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--warn); }
+.pz.preso { opacity: .3; }
+.dq.meta .pz { display: none; }
+
+/* battaglia navale */
+.bn-box { margin-top: 14px; }
+.bn-griglia { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; width: min(100%, 400px); margin: 0 auto; }
+.bn-mio { width: min(78%, 300px); gap: 2px; }
+.bn-disp { touch-action: none; user-select: none; -webkit-user-select: none; }
+.bc { aspect-ratio: 1; border: 0; padding: 0; border-radius: 4px; background: var(--surface-2); display: grid; place-items: center; }
+.bc.nave { background: #555762; }
+.bc.sel { background: var(--p-g); }
+.bc.acqua::after { content: ""; width: 26%; aspect-ratio: 1; border-radius: 50%; background: var(--text-faint); }
+.bc.colpito { background: color-mix(in srgb, var(--warn) 75%, #000); }
+.bc.colpito::after, .bc.affondato::after { content: "✕"; font-size: 11px; font-weight: 800; color: #000; line-height: 1; }
+.bc.affondato { background: var(--err); }
+.bc.ultimo { box-shadow: 0 0 0 2px var(--text); }
+button.bc:disabled { cursor: default; }
+.bn-titolo { display: flex; justify-content: space-between; align-items: baseline; width: min(100%, 400px); margin: 16px auto 8px;
+  font-weight: 700; font-size: var(--fs-s); }
+.bn-titolo span { color: var(--text-dim); font-weight: 600; font-size: var(--fs-xs); }
+.bn-mio + .bn-titolo, .bn-titolo:has(+ .bn-mio) { width: min(78%, 300px); }
+.bn-azioni { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 10px; }
+.bn-azioni .btn + .btn { margin-top: 0; }
 
 .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--gap); }
 .day {
@@ -524,6 +562,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
         <button class="btn secondary" id="pt-sim-pronto" hidden>Prova: simula buddy pronto</button>
       </div>
       <div class="pt-stato" id="pt-stato" aria-live="polite"></div>
+      <div class="pt-notizia" id="pt-notizia" aria-live="polite"></div>
       <div id="pt-campo"></div>
       <div class="field-gap"></div>
       <button class="btn" id="pt-nuova" hidden>Nuova partita</button>
@@ -621,7 +660,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -1486,8 +1525,8 @@ const GIOCHI = [
   { id: "tris", nome: "Tris", colore: "#FF4FA3", livelli: true, visibile: true },
   { id: "forza4", nome: "Forza 4", colore: "#2F7BFF", livelli: true, visibile: true },
   { id: "dado", nome: "Dado", colore: "#FFD60A", visibile: true },
-  { id: "dama", nome: "Dama", colore: "#FF8A00", livelli: true, visibile: false },
-  { id: "battaglia", nome: "Battaglia navale", colore: "#00E5FF", visibile: false },
+  { id: "dama", nome: "Dama", colore: "#FF8A00", livelli: true, visibile: true },
+  { id: "battaglia", nome: "Battaglia navale", colore: "#00E5FF", livelli: true, visibile: true },
   { id: "moneta", nome: "Moneta", colore: "#39FF88", visibile: false },
   { id: "palla8", nome: "Palla dell'8", colore: "#A970FF", visibile: false },
   { id: "indovinaChi", nome: "Indovina chi", colore: "#FF3B30", visibile: false }
@@ -1578,8 +1617,11 @@ function vinceSubitoF4(b, chi) {
    nuovo()            → tabellone vuoto
    valida(b, pos)     → la mossa si può fare?
    applica(b, pos, chi)
-   esito(b)           → null (si continua) oppure { chi: "giocatore" | "buddy" | null (pari), linea: [...] }
-   scelta(b, livello) → mossa del buddy */
+   esito(b, chiHaMosso) → null (si continua) oppure { chi: "giocatore" | "buddy" | null (pari), linea: [...] }
+   scelta(b, livello) → mossa del buddy
+   facoltativi: reazioneGiocatore(info) / reazioneBuddy(info) → reazione speciale dopo la mossa,
+                notizia(info, chi, nome) → frase da mostrare sotto il tabellone.
+   (Dama e Battaglia navale sono più sotto) */
 const LOGICHE = {
   tris: {
     nuovo: () => Array(9).fill(null),
@@ -1623,6 +1665,262 @@ const LOGICHE = {
   dado: { nuovo: () => null } // niente tabellone e niente turni: si tira e basta
 };
 
+/* ---------- Dama italiana ----------
+   Scacchiera 8×8, si gioca sulle caselle scure. Casella i = riga*8 + colonna, riga 0 = in alto (lato del buddy).
+   Pedine: un passo in diagonale in avanti, mangiano solo in avanti e NON possono mangiare la dama.
+   Dame: un passo in diagonale in ogni direzione, mangiano in ogni direzione.
+   Presa obbligatoria con le priorità italiane:
+   1) più pezzi presi  2) a parità, si mangia con la dama  3) più dame prese  4) la dama presa per prima. */
+const scura = i => ((i >> 3) + (i & 7)) % 2 === 0;   // l'angolo in basso a destra è scuro
+const altro = chi => chi === "buddy" ? "giocatore" : "buddy";
+const DIAG = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+const avantiDama = chi => chi === "giocatore" ? -1 : 1;
+const rigaDama = chi => chi === "giocatore" ? 0 : 7;      // riga in cui la pedina diventa dama
+const PATTA_DAMA = 80;                                     // 40 mosse a testa solo di dame senza prese = pari
+
+function nuovaDama() {
+  const celle = Array(64).fill(null);
+  for (let i = 0; i < 64; i++) if (scura(i)) {
+    const r = i >> 3;
+    if (r < 3) celle[i] = { chi: "buddy", dama: false };
+    else if (r > 4) celle[i] = { chi: "giocatore", dama: false };
+  }
+  return { celle, calmo: 0 };
+}
+function prioritaItaliana(l) {
+  const max = Math.max(...l.map(m => m.presi.length)); l = l.filter(m => m.presi.length === max);
+  if (l.some(m => m.conDama)) l = l.filter(m => m.conDama);
+  const maxD = Math.max(...l.map(m => m.dame)); l = l.filter(m => m.dame === maxD);
+  const minP = Math.min(...l.map(m => m.prima)); return l.filter(m => m.prima === minP);
+}
+// Tutte le mosse permesse a "chi". Ogni mossa: { da, path: [caselle di arrivo], presi: [caselle mangiate], ... }
+function mosseDama(b, chi) {
+  const C = b.celle, prese = [], semplici = [];
+  for (let da = 0; da < 64; da++) {
+    const p = C[da]; if (!p || p.chi !== chi) continue;
+    const dirs = p.dama ? DIAG : DIAG.filter(d => d[0] === avantiDama(chi));
+    const cerca = (pos, path, presi, dame, prima) => {
+      let continua = false;
+      for (const [dr, dc] of dirs) {
+        const r = (pos >> 3) + dr, c = (pos & 7) + dc, r2 = r + dr, c2 = c + dc;
+        if (r2 < 0 || r2 > 7 || c2 < 0 || c2 > 7) continue;
+        const m = r * 8 + c, a = r2 * 8 + c2, q = C[m];
+        if (!q || q.chi === chi || presi.includes(m)) continue;
+        if (C[a] && a !== da) continue;
+        if (q.dama && !p.dama) continue;                    // la pedina non mangia la dama
+        continua = true;
+        const np = [...path, a], npr = [...presi, m];
+        const nd = dame + (q.dama ? 1 : 0), npri = prima < Infinity ? prima : (q.dama ? presi.length : Infinity);
+        if (!p.dama && r2 === rigaDama(chi)) prese.push({ da, path: np, presi: npr, dame: nd, prima: npri, conDama: false }); // diventa dama: si ferma
+        else cerca(a, np, npr, nd, npri);
+      }
+      if (!continua && presi.length) prese.push({ da, path, presi, dame, prima, conDama: p.dama });
+    };
+    cerca(da, [], [], 0, Infinity);
+    for (const [dr, dc] of dirs) {
+      const r = (da >> 3) + dr, c = (da & 7) + dc;
+      if (r < 0 || r > 7 || c < 0 || c > 7 || C[r * 8 + c]) continue;
+      semplici.push({ da, path: [r * 8 + c], presi: [], dame: 0, prima: Infinity, conDama: p.dama });
+    }
+  }
+  return prese.length ? prioritaItaliana(prese) : semplici;
+}
+function applicaDama(b, m, chi) {
+  const p = b.celle[m.da], fine = m.path[m.path.length - 1];
+  b.celle[m.da] = null;
+  m.presi.forEach(x => b.celle[x] = null);
+  const promozione = !p.dama && (fine >> 3) === rigaDama(chi);
+  b.celle[fine] = { chi, dama: p.dama || promozione };
+  b.calmo = m.presi.length || !p.dama ? 0 : b.calmo + 1;
+  return { posizione: fine, mossa: { da: m.da, prese: m.presi.length }, presi: m.presi.length, promozione };
+}
+const copiaDama = b => ({ celle: b.celle.slice(), calmo: b.calmo });
+function valutaDama(b) {
+  let s = 0;
+  b.celle.forEach((p, i) => {
+    if (!p) return;
+    const r = i >> 3, c = i & 7;
+    let v = p.dama ? 260 : 100 + (p.chi === "buddy" ? r : 7 - r) * 6;
+    if (c >= 2 && c <= 5) v += 4;
+    if (!p.dama && r === (p.chi === "buddy" ? 0 : 7)) v += 8;  // tenere la riga di fondo protegge dalle dame
+    s += p.chi === "buddy" ? v : -v;
+  });
+  return s;
+}
+function minimaxDama(b, prof, alfa, beta, chi) {
+  const ms = mosseDama(b, chi);
+  if (!ms.length) return chi === "buddy" ? -100000 - prof : 100000 + prof;
+  if (b.calmo >= PATTA_DAMA) return 0;
+  if (prof === 0) return valutaDama(b);
+  const max = chi === "buddy";
+  let v = max ? -Infinity : Infinity;
+  for (const m of ms) {
+    const nb = copiaDama(b); applicaDama(nb, m, chi);
+    const x = minimaxDama(nb, prof - 1, alfa, beta, altro(chi));
+    if (max) { v = Math.max(v, x); alfa = Math.max(alfa, v); } else { v = Math.min(v, x); beta = Math.min(beta, v); }
+    if (alfa >= beta) break;
+  }
+  return v;
+}
+const stessaMossa = (a, b) => a.da === b.da && a.path.join() === b.path.join();
+
+LOGICHE.dama = {
+  nuovo: nuovaDama,
+  valida: (b, m) => !!m && mosseDama(b, "giocatore").some(x => stessaMossa(x, m)),
+  applica: applicaDama,
+  esito(b, chiHaMosso) {
+    if (!mosseDama(b, altro(chiHaMosso)).length) return { chi: chiHaMosso, linea: [] }; // l'altro non può muovere: ha perso
+    if (b.calmo >= PATTA_DAMA) return { chi: null, linea: [] };
+    return null;
+  },
+  scelta(b, livello) {
+    const ms = mosseDama(b, "buddy");
+    if (ms.length === 1) return ms[0];
+    if (livello === "facile" && Math.random() < 0.35) return caso(ms);       // errore casuale
+    const prof = livello === "facile" ? 1 : 6;
+    let meglio = -Infinity, scelte = [];
+    for (const m of ms) {
+      const nb = copiaDama(b); applicaDama(nb, m, "buddy");
+      const v = minimaxDama(nb, prof, -Infinity, Infinity, "giocatore");
+      if (v > meglio) { meglio = v; scelte = [m]; } else if (v === meglio) scelte.push(m);
+    }
+    return caso(scelte);
+  },
+  // reazioni: tu mangi una sua pedina → "mangiato"; lui mangia → "sorrisetto"; lui fa dama → "dama"
+  reazioneGiocatore: info => info.presi ? "mangiato" : null,
+  reazioneBuddy: info => info.promozione ? "dama" : info.presi ? "sorrisetto" : null,
+  notizia(info, chi, nome) {
+    const p = info.presi, pz = p === 1 ? "una pedina" : `${p} pezzi`;
+    if (chi === "giocatore") return info.promozione ? "Hai fatto dama!" : p ? `Hai mangiato ${pz}` : "";
+    return info.promozione ? `${nome} ha fatto dama!` : p ? `${nome} ti ha mangiato ${pz}` : "";
+  }
+};
+
+/* ---------- Battaglia navale ----------
+   Griglia 10×10 (casella i = riga*10 + colonna). Flotta: 5, 4, 3, 3, 2. Si spara un colpo a testa. */
+const BN = 10, FLOTTA = [5, 4, 3, 3, 2];
+const celleNave = n => Array.from({ length: n.len }, (_, k) => n.o === "h" ? n.r * BN + n.c + k : (n.r + k) * BN + n.c);
+const dentroBN = n => n.r >= 0 && n.c >= 0 && (n.o === "h" ? n.r < BN && n.c + n.len <= BN : n.c < BN && n.r + n.len <= BN);
+function naveValida(navi, i, n) {
+  if (!dentroBN(n)) return false;
+  const occ = new Set(navi.flatMap((x, j) => j === i ? [] : celleNave(x)));
+  return celleNave(n).every(x => !occ.has(x));
+}
+function flottaACaso() {
+  const navi = [];
+  for (const len of FLOTTA) for (;;) {
+    const n = { len, o: Math.random() < .5 ? "h" : "v", r: Math.floor(Math.random() * BN), c: Math.floor(Math.random() * BN), colpi: 0 };
+    if (naveValida(navi, -1, n)) { navi.push(n); break; }
+  }
+  return navi;
+}
+const naveIn = (navi, idx) => navi.findIndex(n => celleNave(n).includes(idx));
+const affondata = n => n.colpi >= n.len;
+function sparaBN(navi, colpi, pos) {
+  const i = naveIn(navi, pos);
+  if (i < 0) { colpi[pos] = "acqua"; return { risultato: "acqua" }; }
+  const n = navi[i]; n.colpi++;
+  if (affondata(n)) { celleNave(n).forEach(x => colpi[x] = "affondato"); return { risultato: "affondato", len: n.len }; }
+  colpi[pos] = "colpito"; return { risultato: "colpito" };
+}
+// Dove spara il buddy. Sa solo quello che saprebbe un giocatore: i suoi colpi e quali navi ha già affondato.
+function miraBN(colpi, rimaste, livello) {
+  const libere = [], aperti = [];
+  colpi.forEach((s, i) => { if (!s) libere.push(i); else if (s === "colpito") aperti.push(i); });
+  const vicini = i => [[-1, 0], [1, 0], [0, -1], [0, 1]]
+    .map(([dr, dc]) => [Math.floor(i / BN) + dr, i % BN + dc])
+    .filter(([r, c]) => r >= 0 && r < BN && c >= 0 && c < BN && !colpi[r * BN + c]).map(([r, c]) => r * BN + c);
+  if (livello === "facile") {
+    // dopo un colpito cerca (quasi sempre) nelle caselle vicine, altrimenti spara a caso
+    if (aperti.length && Math.random() < .75) { const v = [...new Set(aperti.flatMap(vicini))]; if (v.length) return caso(v); }
+    return caso(libere);
+  }
+  // difficile: conta in quanti modi le navi rimaste possono passare da ogni casella libera;
+  // se c'è un colpito non ancora affondato, valgono (molto di più) solo le posizioni che lo comprendono
+  const punti = Array(BN * BN).fill(0);
+  for (const len of rimaste) for (const o of ["h", "v"]) for (let r = 0; r < BN; r++) for (let c = 0; c < BN; c++) {
+    const n = { len, o, r, c }; if (!dentroBN(n)) continue;
+    const cel = celleNave(n);
+    if (cel.some(x => colpi[x] === "acqua" || colpi[x] === "affondato")) continue;
+    const h = cel.filter(x => colpi[x] === "colpito").length;
+    const peso = aperti.length ? (h ? 1 + h * 20 : 0) : 1;
+    if (peso) cel.forEach(x => { if (!colpi[x]) punti[x] += peso; });
+  }
+  let max = 0, scelte = [];
+  for (const i of libere) { if (punti[i] > max) { max = punti[i]; scelte = [i]; } else if (punti[i] === max && max > 0) scelte.push(i); }
+  return caso(scelte.length ? scelte : libere);
+}
+const coordBN = i => "ABCDEFGHIJ"[i % BN] + (Math.floor(i / BN) + 1);
+
+LOGICHE.battaglia = {
+  // fase: "disposizione" (sistemi le tue navi) → "gioco"
+  nuovo: () => ({ fase: "disposizione", mie: flottaACaso(), sue: flottaACaso(), colpiG: Array(BN * BN).fill(null), colpiB: Array(BN * BN).fill(null) }),
+  valida: (b, p) => b.fase === "gioco" && Number.isInteger(p) && p >= 0 && p < BN * BN && !b.colpiG[p],
+  applica(b, p, chi) {
+    const r = chi === "giocatore" ? sparaBN(b.sue, b.colpiG, p) : sparaBN(b.mie, b.colpiB, p);
+    return { posizione: p, mossa: { risultato: r.risultato }, ...r };
+  },
+  esito(b) {
+    if (b.sue.every(affondata)) return { chi: "giocatore", linea: [] };
+    if (b.mie.every(affondata)) return { chi: "buddy", linea: [] };
+    return null;
+  },
+  scelta: (b, livello) => miraBN(b.colpiB, b.mie.filter(n => !affondata(n)).map(n => n.len), livello),
+  // tu spari a lui: colpito / affondato / acqua · lui spara a te: esulta (colpito o affondato) / broncio_leggero (acqua)
+  reazioneGiocatore: info => info.risultato,
+  reazioneBuddy: info => info.risultato === "acqua" ? "broncio_leggero" : "esulta",
+  notizia(info, chi, nome) {
+    const dove = coordBN(info.posizione);
+    if (chi === "giocatore") return info.risultato === "acqua" ? `${dove}: acqua` : info.risultato === "colpito" ? `${dove}: colpito!` : `${dove}: affondata la nave da ${info.len}!`;
+    return info.risultato === "acqua" ? `${nome} spara in ${dove}: acqua` : info.risultato === "colpito" ? `${nome} ti colpisce in ${dove}` : `${nome} ti affonda la nave da ${info.len}`;
+  }
+};
+
+// Battaglia: si parte quando le tue navi sono a posto
+function iniziaBattaglia() {
+  if (!G || G.gioco !== "battaglia" || G.fase !== "gioco" || !G.tab || G.tab.fase !== "disposizione") return;
+  G.tab.fase = "gioco"; G.turno = G.inizia; G.selNave = null; G.notizia = "";
+  if (G.turno === "buddy") { G.reazione = "pensa"; scriviPartita(); mossaBuddyTraPoco(); }
+  else { G.reazione = "tocca_a_te"; scriviPartita(); }
+  resetInattivita(); renderPartita();
+}
+function ruotaNave() {
+  if (!G || !G.tab || G.tab.fase !== "disposizione") return;
+  const navi = G.tab.mie, i = G.selNave;
+  if (i == null) { toast("Prima tocca una nave."); return; }
+  const n = navi[i], o = n.o === "h" ? "v" : "h";
+  for (let k = 0; k < n.len; k++) {               // se non ci sta, prova a spostarla un po' indietro
+    const prova = { ...n, o, r: o === "v" ? n.r - k : n.r, c: o === "h" ? n.c - k : n.c };
+    if (naveValida(navi, i, prova)) { navi[i] = prova; resetInattivita(); renderPartita(); return; }
+  }
+  toast("Qui non c'è spazio per ruotarla.");
+}
+// Dama: tocchi la pedina e poi la casella (le prese multiple una casella alla volta)
+function tapDama(i) {
+  if (!G || G.gioco !== "dama" || G.fase !== "gioco" || G.turno !== "giocatore" || G.esito) return;
+  const mosse = mosseDama(G.tab, "giocatore"), sel = G.sel;
+  if (sel && sel.path.length) {                    // presa multipla a metà: si continua
+    const path = [...sel.path, i];
+    const c = mosse.filter(m => m.da === sel.da && path.every((x, k) => m.path[k] === x));
+    if (!c.length) return;
+    const fine = c.find(m => m.path.length === path.length);
+    if (fine) mossaGiocatore(fine); else { sel.path = path; renderPartita(); }
+    return;
+  }
+  if (mosse.some(m => m.da === i)) { G.sel = { da: i, path: [] }; renderPartita(); return; }
+  if (sel) {
+    const c = mosse.filter(m => m.da === sel.da && m.path[0] === i);
+    if (c.length) {
+      const fine = c.find(m => m.path.length === 1);
+      if (fine) mossaGiocatore(fine); else { sel.path = [i]; renderPartita(); }
+      return;
+    }
+  }
+  const p = G.tab.celle[i];
+  if (p && p.chi === "giocatore" && mosse.length && mosse[0].presi.length) toast("C'è una presa obbligatoria: usa una pedina evidenziata.");
+  G.sel = null; renderPartita();
+}
+
 /* ---------- la partita in corso ---------- */
 let G = null;               // partita aperta (null = nessuna)
 let codaPartita = Promise.resolve();
@@ -1640,7 +1938,8 @@ function apriGioco(id) {
     livello: ls.get(LS_LIVELLO + id) === "difficile" ? "difficile" : "facile",
     manche: 1, passo: 0, inizia: "giocatore",
     tab: null, turno: null, esito: null, linea: [], ultimaMossa: null, reazione: "nessuna",
-    dado: null, lancio: 0, dadoMostrato: null, gira: false, motivo: "", timer: {}
+    dado: null, lancio: 0, dadoMostrato: null, gira: false, motivo: "", timer: {},
+    sel: null, selNave: null, notizia: ""
   };
   vai("partita");
   scriviPartita();
@@ -1700,8 +1999,9 @@ function nuovaManche(prima) {
   if (!G) return;
   if (!prima) { G.manche++; G.inizia = G.inizia === "giocatore" ? "buddy" : "giocatore"; }
   G.tab = LOGICHE[G.gioco].nuovo();
-  G.esito = null; G.linea = []; G.ultimaMossa = null;
+  G.esito = null; G.linea = []; G.ultimaMossa = null; G.sel = null; G.selNave = null; G.notizia = "";
   if (G.gioco === "dado") { G.turno = null; G.reazione = "tocca_a_te"; scriviPartita(); }
+  else if (G.gioco === "battaglia") { G.turno = null; G.reazione = "nessuna"; scriviPartita(); } // prima si dispongono le navi
   else if (G.inizia === "buddy") { G.turno = "buddy"; G.reazione = "pensa"; scriviPartita(); mossaBuddyTraPoco(); }
   else { G.turno = "giocatore"; G.reazione = "tocca_a_te"; scriviPartita(); }
   resetInattivita();
@@ -1712,11 +2012,13 @@ function mossaGiocatore(pos) {
   if (!G || G.fase !== "gioco" || G.turno !== "giocatore" || G.esito) return;
   const L = LOGICHE[G.gioco];
   if (!L.valida(G.tab, pos)) return;
-  L.applica(G.tab, pos, "giocatore");
-  G.ultimaMossa = { chi: "giocatore", posizione: pos };
+  const info = L.applica(G.tab, pos, "giocatore") || {};
+  G.ultimaMossa = { chi: "giocatore", posizione: info.posizione ?? pos, ...(info.mossa || {}) };
+  G.notizia = L.notizia ? L.notizia(info, "giocatore", S.nome || "il buddy") : "";
+  G.sel = null;
   resetInattivita();
-  if (controllaFine()) return;
-  G.turno = "buddy"; G.reazione = "pensa";
+  if (controllaFine("giocatore")) return;
+  G.turno = "buddy"; G.reazione = (L.reazioneGiocatore && L.reazioneGiocatore(info)) || "pensa";
   scriviPartita(); renderPartita();
   mossaBuddyTraPoco();
 }
@@ -1727,17 +2029,18 @@ function mossaBuddyTraPoco() {
     if (G !== g || g.fase !== "gioco" || g.turno !== "buddy") return;
     const L = LOGICHE[g.gioco];
     const pos = L.scelta(g.tab, g.livello);
-    L.applica(g.tab, pos, "buddy");
-    g.ultimaMossa = { chi: "buddy", posizione: pos };
+    const info = L.applica(g.tab, pos, "buddy") || {};
+    g.ultimaMossa = { chi: "buddy", posizione: info.posizione ?? pos, ...(info.mossa || {}) };
+    g.notizia = L.notizia ? L.notizia(info, "buddy", S.nome || "il buddy") : "";
     resetInattivita();
-    if (controllaFine()) return;
-    g.turno = "giocatore"; g.reazione = "tocca_a_te";
+    if (controllaFine("buddy")) return;
+    g.turno = "giocatore"; g.reazione = (L.reazioneBuddy && L.reazioneBuddy(info)) || "tocca_a_te";
     scriviPartita(); renderPartita();
   }, 900 + Math.random() * 700);
 }
 // esito dal punto di vista di chi gioca col telefono: vinto / perso / pari
-function controllaFine() {
-  const e = LOGICHE[G.gioco].esito(G.tab);
+function controllaFine(chi) {
+  const e = LOGICHE[G.gioco].esito(G.tab, chi);
   if (!e) return false;
   G.linea = e.linea; G.turno = null;
   G.esito = e.chi === "giocatore" ? "vinto" : e.chi === "buddy" ? "perso" : "pari";
@@ -1832,13 +2135,19 @@ function renderPartita() {
   let testo = "";
   if (G.fase === "gioco") {
     if (G.gioco === "dado") testo = G.gira ? "Il dado gira…" : G.dadoMostrato ? `È uscito ${G.dadoMostrato}` : "Tocca «Tira» per lanciare il dado";
+    else if (G.gioco === "battaglia" && G.tab && G.tab.fase === "disposizione") testo = "Disponi le tue navi";
     else if (G.esito === "vinto") testo = "Hai vinto! 🎉";
     else if (G.esito === "perso") testo = `Ha vinto ${nome}`;
     else if (G.esito === "pari") testo = "Pareggio";
-    else testo = G.turno === "buddy" ? `${nome} ci pensa…` : "Tocca a te";
+    else if (G.turno === "buddy") testo = `${nome} ci pensa…`;
+    else {
+      const obbligo = G.gioco === "dama" && G.tab && (mosseDama(G.tab, "giocatore")[0] || { presi: [] }).presi.length > 0;
+      testo = obbligo ? "Tocca a te · presa obbligatoria" : "Tocca a te";
+    }
   }
   $("#pt-stato").textContent = testo;
   $("#pt-stato").hidden = !testo;
+  $("#pt-notizia").textContent = G.fase === "gioco" ? G.notizia || "" : "";
   $("#pt-con").textContent = G.fase !== "gioco" ? "" : G.conBuddy ? `Stai giocando con ${nome}.` : "Stai giocando senza il buddy.";
 
   // campo di gioco
@@ -1858,6 +2167,51 @@ function renderPartita() {
       const c = i % F4C;
       return `<button class="buco ${v === "giocatore" ? "g" : v === "buddy" ? "b" : ""}${G.linea.includes(i) ? " vince" : ""}" data-pos="${c}" aria-label="Colonna ${c + 1}" ${!attivo || cadutaF4(G.tab, c) < 0 ? "disabled" : ""}></button>`;
     }).join("");
+  } else if (G.gioco === "dama") {
+    campo.className = "dama-box" + (G.fase === "chiusa" ? " off" : "");
+    const mosse = attivo ? mosseDama(G.tab, "giocatore") : [];
+    const obbligo = mosse.length > 0 && mosse[0].presi.length > 0, sel = G.sel;
+    const cand = sel ? mosse.filter(m => m.da === sel.da && sel.path.every((x, k) => m.path[k] === x)) : [];
+    const mete = new Set(cand.map(m => m.path[sel.path.length]).filter(x => x != null));
+    const daMuovere = new Set(mosse.map(m => m.da));
+    // con una presa multipla a metà, la pedina si vede già avanti e i pezzi presi sbiaditi
+    const celle = G.tab.celle.slice(), presiOra = new Set();
+    let qui = sel ? sel.da : -1;
+    if (sel && sel.path.length && cand.length) {
+      qui = sel.path[sel.path.length - 1]; celle[qui] = celle[sel.da]; celle[sel.da] = null;
+      cand[0].presi.slice(0, sel.path.length).forEach(x => presiOra.add(x));
+    }
+    const um = G.ultimaMossa, ultima = um && um.da != null ? [um.da, um.posizione] : [];
+    campo.innerHTML = `<div class="dama">${celle.map((p, i) => {
+      if (!scura(i)) return `<span class="dq"></span>`;
+      const pz = p ? `<span class="pz ${p.chi === "giocatore" ? "g" : "b"}${p.dama ? " re" : ""}${presiOra.has(i) ? " preso" : ""}${i === qui ? " sel" : ""}${obbligo && !sel && daMuovere.has(i) ? " obbligo" : ""}"></span>` : "";
+      const lbl = `Casella ${"ABCDEFGH"[i & 7]}${8 - (i >> 3)}${p ? (p.chi === "giocatore" ? ", tua" : ", del buddy") + (p.dama ? " (dama)" : "") : ""}`;
+      return `<button class="dq scura${ultima.includes(i) ? " ultima" : ""}${mete.has(i) ? " meta" : ""}" data-dama="${i}" aria-label="${lbl}" ${attivo ? "" : "disabled"}>${pz}</button>`;
+    }).join("")}</div>`;
+  } else if (G.gioco === "battaglia") {
+    const b = G.tab, off = G.fase === "chiusa" ? " off" : "";
+    campo.className = "bn-box" + off;
+    if (b.fase === "disposizione") {
+      const occ = {};
+      b.mie.forEach((n, j) => celleNave(n).forEach(x => occ[x] = j));
+      campo.innerHTML = `<div class="bn-griglia bn-disp">${Array.from({ length: BN * BN }, (_, i) =>
+        `<span class="bc${occ[i] != null ? " nave" : ""}${occ[i] != null && occ[i] === G.selNave ? " sel" : ""}" data-cella="${i}"></span>`).join("")}</div>
+        <p class="hint">Trascina le navi per spostarle. Tocca una nave e poi «Ruota».</p>
+        <div class="bn-azioni"><button class="btn secondary" id="bn-ruota">Ruota</button><button class="btn secondary" id="bn-caso">Disponi a caso</button></div>
+        <button class="btn" id="bn-via" ${G.fase !== "gioco" ? "disabled" : ""}>Pronti, si gioca!</button>`;
+    } else {
+      const um = G.ultimaMossa, svela = !!G.esito;
+      const sueOcc = new Set(b.sue.flatMap(celleNave)), mieOcc = new Set(b.mie.flatMap(celleNave));
+      const ult = chi => um && um.chi === chi ? um.posizione : -1;
+      const cellaSua = (s, i) => s
+        ? `<span class="bc ${s}${i === ult("giocatore") ? " ultimo" : ""}"></span>`
+        : `<button class="bc${svela && sueOcc.has(i) ? " nave" : ""}" data-pos="${i}" aria-label="Spara in ${coordBN(i)}" ${attivo ? "" : "disabled"}></button>`;
+      campo.innerHTML = `
+        <div class="bn-titolo">Flotta di ${nome}<span>${b.sue.filter(affondata).length} su ${FLOTTA.length} affondate</span></div>
+        <div class="bn-griglia bn-suo">${b.colpiG.map(cellaSua).join("")}</div>
+        <div class="bn-titolo">La tua flotta<span>${b.mie.filter(affondata).length} su ${FLOTTA.length} affondate</span></div>
+        <div class="bn-griglia bn-mio">${b.colpiB.map((s, i) => `<span class="bc${mieOcc.has(i) ? " nave" : ""}${s ? " " + s : ""}${i === ult("buddy") ? " ultimo" : ""}"></span>`).join("")}</div>`;
+    }
   } else if (G.gioco === "dado") {
     campo.className = "dado-box" + (G.fase === "chiusa" ? " off" : "");
     const v = G.dadoMostrato || 1;
@@ -1886,8 +2240,36 @@ function collegaGiochi() {
   $("#giochi-griglia").addEventListener("click", e => { const b = e.target.closest("[data-gioco]"); if (b && !b.disabled) apriGioco(b.dataset.gioco); });
   $("#pt-campo").addEventListener("click", e => {
     if (e.target.closest("#pt-tira")) { tiraDado(); return; }
+    if (e.target.closest("#bn-ruota")) { ruotaNave(); return; }
+    if (e.target.closest("#bn-caso")) { if (G && G.tab) { G.tab.mie = flottaACaso(); G.selNave = null; resetInattivita(); renderPartita(); } return; }
+    if (e.target.closest("#bn-via")) { iniziaBattaglia(); return; }
+    const d = e.target.closest("[data-dama]"); if (d && !d.disabled) { tapDama(+d.dataset.dama); return; }
     const b = e.target.closest("[data-pos]"); if (b && !b.disabled) mossaGiocatore(+b.dataset.pos);
   });
+  // Battaglia navale: trascinare le navi durante la disposizione
+  let trascina = null;
+  const cellaSotto = e => { const el = document.elementFromPoint(e.clientX, e.clientY); const c = el && el.closest("[data-cella]"); return c ? +c.dataset.cella : -1; };
+  $("#pt-campo").addEventListener("pointerdown", e => {
+    if (!G || G.gioco !== "battaglia" || !G.tab || G.tab.fase !== "disposizione") return;
+    const c = e.target.closest("[data-cella]"); if (!c) return;
+    const idx = +c.dataset.cella, i = naveIn(G.tab.mie, idx);
+    if (i < 0) { G.selNave = null; renderPartita(); return; }
+    e.preventDefault();
+    G.selNave = i;
+    trascina = { nave: i, k: celleNave(G.tab.mie[i]).indexOf(idx) };   // quale pezzo della nave hai preso
+    $("#pt-campo").setPointerCapture(e.pointerId);
+    renderPartita();
+  });
+  $("#pt-campo").addEventListener("pointermove", e => {
+    if (!trascina || !G || !G.tab) return;
+    const idx = cellaSotto(e); if (idx < 0) return;
+    const n = G.tab.mie[trascina.nave], r = Math.floor(idx / BN), c = idx % BN;
+    const nuova = { ...n, r: n.o === "v" ? r - trascina.k : r, c: n.o === "h" ? c - trascina.k : c };
+    if ((nuova.r !== n.r || nuova.c !== n.c) && naveValida(G.tab.mie, trascina.nave, nuova)) { G.tab.mie[trascina.nave] = nuova; renderPartita(); }
+  });
+  const fineTrascina = () => { if (trascina) { trascina = null; resetInattivita(); } };
+  $("#pt-campo").addEventListener("pointerup", fineTrascina);
+  $("#pt-campo").addEventListener("pointercancel", fineTrascina);
   $("#pt-livelli").addEventListener("click", e => {
     const b = e.target.closest("[data-livello]"); if (!b || !G) return;
     G.livello = b.dataset.livello; ls.set(LS_LIVELLO + G.gioco, G.livello); renderPartita();

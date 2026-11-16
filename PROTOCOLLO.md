@@ -257,7 +257,7 @@ una con `"stile": 9` deve essere rifiutata.
 
 ## 8. Giochi: `partita` e `partitaStato`
 
-Prima versione: **Tris**, **Forza 4**, **Dado**.
+Giochi disponibili: **Tris**, **Forza 4**, **Dado**, **Dama** (italiana), **Battaglia navale**.
 
 **Chi fa cosa**
 - Il **telefono** mostra il tabellone, controlla le mosse e **decide anche le mosse del buddy**
@@ -289,12 +289,12 @@ L'app la scrive tutta insieme (`PUT`) a ogni cambiamento.
 | Campo | Valori | Significato |
 |---|---|---|
 | `id` | testo (max 40) | identifica la partita. Cambia ogni volta che si apre un gioco |
-| `gioco` | `tris` · `forza4` · `dado` | il gioco. In futuro: `dama`, `battaglia`, `moneta`, `palla8`, `indovinaChi` |
+| `gioco` | `tris` · `forza4` · `dado` · `dama` · `battaglia` | il gioco. In futuro: `moneta`, `palla8`, `indovinaChi` |
 | `stato` | `attesa` · `in_corso` · `finita` | `attesa` = l'app sta chiamando il buddy · `in_corso` = si gioca · `finita` = il buddy torna normale |
-| `turno` | `giocatore` · `buddy` · assente | di chi è il turno. Assente nel Dado, a manche finita e a partita finita |
-| `ultimaMossa` | `{ "chi", "posizione" }` · assente | `chi` = `giocatore` o `buddy`. `posizione`: Tris = casella 0–8 (da sinistra a destra, dall'alto in basso); Forza 4 = colonna 0–6 (da sinistra) |
+| `turno` | `giocatore` · `buddy` · assente | di chi è il turno. Assente nel Dado, mentre si dispongono le navi (Battaglia), a manche finita e a partita finita |
+| `ultimaMossa` | oggetto · assente | vedi "L'ultima mossa" sotto |
 | `esito` | `vinto` · `perso` · `pari` · assente | risultato della manche **dal punto di vista di chi gioca col telefono** (`vinto` = ha vinto la persona, quindi il buddy ha perso) |
-| `reazione` | `pensa` · `tocca_a_te` · `esulta` · `broncio` · `pareggio` · `dado` · `nessuna` | cosa deve mostrare il buddy adesso |
+| `reazione` | vedi elenco sotto | cosa deve mostrare il buddy adesso |
 | `manche` | numero da 1 | quale partita della serie ("Nuova partita" la aumenta di 1, con lo stesso `id`) |
 | `passo` | numero | aumenta a **ogni** scrittura: se cambia, c'è qualcosa di nuovo (anche se la `reazione` è la stessa di prima) |
 | `difficolta` | `facile` · `difficile` · assente | solo per i giochi con livelli. Il buddy può usarla per scegliere quanto "vantarsi" |
@@ -303,13 +303,55 @@ L'app la scrive tutta insieme (`PUT`) a ogni cambiamento.
 
 I campi "assenti" non sono scritti (Firebase non salva i `null`): il buddy deve trattare un campo mancante come "niente".
 
-Le reazioni:
+### L'ultima mossa
+
+`ultimaMossa` ha sempre `chi` (`giocatore` o `buddy`) e `posizione`; alcuni giochi aggiungono altri campi.
+
+| Gioco | Campi | Significato |
+|---|---|---|
+| Tris | `posizione` 0–8 | casella, da sinistra a destra e dall'alto in basso |
+| Forza 4 | `posizione` 0–6 | colonna, da sinistra |
+| Dama | `da` 0–63, `posizione` 0–63, `prese` 0–12 | casella di partenza e di arrivo (riga × 8 + colonna, riga 0 = in alto, dal lato del buddy) e quanti pezzi sono stati mangiati |
+| Battaglia navale | `posizione` 0–99, `risultato` | casella colpita (riga × 10 + colonna, A1 = 0 in alto a sinistra) e `acqua` · `colpito` · `affondato` |
+
+### Le reazioni
+
+**In tutti i giochi**
 - `pensa` → il buddy "riflette" (è il suo turno: l'app sceglie la mossa dopo circa 1–1,5 secondi);
 - `tocca_a_te` → invita la persona a giocare;
-- `esulta` → il buddy ha vinto · `broncio` → il buddy ha perso · `pareggio` → pari;
+- `esulta` → il buddy ha vinto · `broncio` → il buddy ha perso · `pareggio` → pari (a fine manche, con `esito`);
+- `nessuna` → niente di particolare (è quella usata con `stato: finita` e mentre si dispongono le navi).
+
+**Dado**
 - `dado` → animazione del dado, poi mostra `dado.valore`. L'app mostra il risultato dopo circa 1,4 secondi:
-  un'animazione del buddy di 1–1,5 secondi resta in sincronia;
-- `nessuna` → niente di particolare (è quella usata con `stato: finita`).
+  un'animazione del buddy di 1–1,5 secondi resta in sincronia.
+
+**Dama**
+- `mangiato` → la persona ha appena mangiato una o più pedine del buddy (dispiaciuto). Con `turno: buddy`.
+- `sorrisetto` → il buddy ha appena mangiato. Con `turno: giocatore`.
+- `dama` → il buddy ha appena fatto dama (entusiasmo). Vince su `sorrisetto` se succedono insieme.
+
+**Battaglia navale**
+- Quando la persona spara al buddy (`ultimaMossa.chi = giocatore`, poi `turno: buddy`):
+  `colpito` (sorpreso, dolorante) · `affondato` (disperato) · `acqua` (sollevato, sorrisetto).
+- Quando il buddy spara alla persona (`ultimaMossa.chi = buddy`, poi `turno: giocatore`):
+  `esulta` se ha colpito o affondato · `broncio_leggero` se ha fatto acqua.
+- Nota: `esulta` compare sia qui sia a fine partita. Per capire se ha vinto la partita, il buddy guarda `esito`
+  (se è `perso`, cioè la persona ha perso, ha vinto lui).
+
+Dopo una reazione speciale (`mangiato`, `colpito`…) non arrivano `pensa` o `tocca_a_te` separati: di chi è il turno lo dice `turno`.
+Quando una mossa chiude la manche, la reazione è quella di fine partita (`esulta`, `broncio`, `pareggio`).
+
+### Regole dei giochi (le applica il telefono)
+
+- **Dama italiana**: 8×8, si gioca sulle caselle scure, 12 pedine a testa. Le pedine vanno avanti di un passo e
+  mangiano solo in avanti; **la pedina non può mangiare la dama**. La dama va di un passo in ogni direzione.
+  Presa obbligatoria, con le priorità: più pezzi → con la dama → più dame → la dama presa per prima.
+  Prese multiple in sequenza; una pedina che arriva in fondo diventa dama e si ferma.
+  Perde chi non può più muovere. Pari dopo 40 mosse a testa solo di dame, senza prese (regola dell'app).
+- **Battaglia navale**: 10×10, flotta 5 · 4 · 3 · 3 · 2 (le navi non si sovrappongono, possono toccarsi).
+  Un colpo a testa, a turno. Prima si dispongono le navi (`turno` assente, `reazione: nessuna`), poi si gioca.
+  Le navi del buddy le dispone il telefono di nascosto.
 
 ### `partitaStato` (scritto dal buddy)
 
