@@ -45,7 +45,7 @@
             },
             "funzioni": {
               "$funzione": {
-                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
+                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
               }
             },
             "versione": {
@@ -62,6 +62,41 @@
             },
             "animazioneMeteo": {
               ".validate": "newData.isNumber() && (newData.val() == 0 || newData.val() == 1 || newData.val() == 2)"
+            },
+            "promemoriaTesto": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "promemoriaOrari": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['id', 'attivo', 'ora', 'minuto', 'giorni', 'testo'])",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
+                },
+                "attivo": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "ora": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 23 && newData.val() % 1 == 0"
+                },
+                "minuto": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59 && newData.val() % 1 == 0"
+                },
+                "data": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)"
+                },
+                "giorni": {
+                  ".validate": "newData.hasChildren(['0', '1', '2', '3', '4', '5', '6'])",
+                  "$giorno": {
+                    ".validate": "$giorno.matches(/^[0-6]$/) && newData.isBoolean()"
+                  }
+                },
+                "testo": {
+                  ".validate": "newData.isString() && newData.val().length <= 40"
+                },
+                "$altro": {
+                  ".validate": false
+                }
+              }
             },
             "$altro": {
               ".validate": false
@@ -102,7 +137,7 @@
             },
             "funzioni": {
               "$funzione": {
-                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
+                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
               }
             },
             "versione": {
@@ -122,6 +157,41 @@
             },
             "animazioneMeteo": {
               ".validate": "newData.isNumber() && (newData.val() == 0 || newData.val() == 1 || newData.val() == 2)"
+            },
+            "promemoriaTesto": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "promemoriaOrari": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['id', 'attivo', 'ora', 'minuto', 'giorni', 'testo'])",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
+                },
+                "attivo": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "ora": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 23 && newData.val() % 1 == 0"
+                },
+                "minuto": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59 && newData.val() % 1 == 0"
+                },
+                "data": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)"
+                },
+                "giorni": {
+                  ".validate": "newData.hasChildren(['0', '1', '2', '3', '4', '5', '6'])",
+                  "$giorno": {
+                    ".validate": "$giorno.matches(/^[0-6]$/) && newData.isBoolean()"
+                  }
+                },
+                "testo": {
+                  ".validate": "newData.isString() && newData.val().length <= 40"
+                },
+                "$altro": {
+                  ".validate": false
+                }
+              }
             },
             "$altro": {
               ".validate": false

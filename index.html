@@ -392,6 +392,33 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 .onboard h1 { text-align: center; }
 .onboard p.lead { text-align: center; margin-bottom: 24px; }
 .divider { display: flex; align-items: center; gap: 10px; color: var(--text-faint); font-size: var(--fs-xs); margin: 22px 0; }
+
+/* ---------- promemoria a orario ---------- */
+h2.sez { font-size: var(--fs-l); color: var(--text); margin-top: 28px; text-transform: none; letter-spacing: 0; }
+.conta-riga { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.conta { font-size: var(--fs-xs); color: var(--text-faint); font-variant-numeric: tabular-nums; margin-top: 8px; flex: none; }
+.conta.pieno { color: var(--warn); }
+.ro-card { padding-top: 4px; padding-bottom: 4px; }
+.ro-row { display: flex; align-items: center; gap: var(--gap); min-height: 64px; }
+.ro-row + .ro-row { border-top: 1px solid var(--line); }
+.ro-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; background: none; border: 0; padding: 10px 0; text-align: left; color: inherit; font: inherit; }
+.ro-ora { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none; }
+.ro-txt { display: flex; flex-direction: column; min-width: 0; }
+.ro-testo { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ro-rip { font-size: var(--fs-xs); color: var(--text-dim); }
+.ro-row.spento .ro-main { opacity: .5; }
+.ro-row.scaduto .ro-main { opacity: .45; }
+.ro-row.scaduto .ro-rip { color: var(--text-faint); }
+.ro-elimina { flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; background: transparent; color: var(--err);
+  border: 1px solid color-mix(in srgb, var(--err) 40%, transparent); font-weight: 600; font-size: var(--fs-xs); }
+.ro-vuoto { color: var(--text-dim); font-size: var(--fs-s); margin: 14px 2px; }
+dialog.sheet { width: min(var(--maxw), calc(100% - 2 * var(--gutter))); max-height: calc(100dvh - 32px); overflow: auto;
+  border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); color: var(--text); padding: 20px var(--gutter) 22px; }
+dialog.sheet::backdrop { background: rgba(0, 0, 0, .65); }
+dialog.sheet h2 { margin-top: 0; font-size: var(--fs-l); color: var(--text); text-transform: none; letter-spacing: 0; }
+dialog.sheet .error:empty { min-height: 0; margin: 4px 0; }
+dialog.sheet .btn[type="submit"] { margin-top: 8px; }
+#ro-dialog input[type="time"], #ro-dialog input[type="date"] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .error { color: var(--err); font-size: var(--fs-s); margin: 10px 2px 0; min-height: 1.4em; }
 
@@ -500,7 +527,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
     <section class="screen wrap" id="scr-promemoria" data-screen="promemoria" data-tab="app" hidden>
       <button class="back" data-go="app">‹ App</button>
       <h1>Promemoria</h1>
-      <p class="lead">Ogni quanto il buddy ti fa un promemoria.</p>
+      <p class="lead">Il buddy ti ricorda le cose: ogni tot minuti oppure a un orario.</p>
       <div class="card">
         <div class="row">
           <div><div class="row-label">Promemoria attivo</div><div class="row-sub" id="rem-summary">Spento</div></div>
@@ -508,7 +535,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
         </div>
       </div>
       <div id="rem-body">
-        <h2>Ogni quanto</h2>
+        <h2 class="sez">Ogni tot minuti</h2>
         <div class="card">
           <div class="stepper">
             <button id="rem-minus" aria-label="Meno 5 minuti">−</button>
@@ -518,9 +545,53 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
         </div>
         <h2>Scelte rapide</h2>
         <div class="chips" id="rem-chips" role="radiogroup" aria-label="Intervallo promemoria"></div>
+        <div class="field-gap"></div>
+        <div class="card">
+          <label class="field" for="rem-testo">Messaggio</label>
+          <input class="input" id="rem-testo" placeholder="Bevi un po' d'acqua" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
+          <div class="conta-riga"><span class="hint">Si salva quando hai finito di scrivere.</span><span class="conta" id="rem-testo-conta">0/40</span></div>
+        </div>
         <p class="hint">Anche da spento, il buddy ricorda ogni quanti minuti avevi scelto.</p>
+
+        <h2 class="sez">A un orario</h2>
+        <div class="card ro-card">
+          <div id="ro-list"></div>
+        </div>
+        <div class="field-gap"></div>
+        <button class="btn secondary" type="button" id="ro-add">+ Aggiungi promemoria</button>
+        <p class="hint" id="ro-pieno" hidden>Hai già 10 promemoria a orario: è il massimo. Eliminane uno per aggiungerne altri.</p>
       </div>
     </section>
+
+    <dialog class="sheet" id="ro-dialog" aria-labelledby="ro-titolo">
+      <form id="ro-form" method="dialog" autocomplete="off">
+        <h2 id="ro-titolo">Nuovo promemoria</h2>
+        <label class="field" for="ro-ora">Ora</label>
+        <input class="input" type="time" id="ro-ora" required>
+        <div class="field-gap"></div>
+        <label class="field">Quando</label>
+        <div class="chips" id="ro-tipo" role="radiogroup" aria-label="Ripetizione">
+          <button type="button" class="chip" role="radio" data-tipo="una">Una volta sola</button>
+          <button type="button" class="chip" role="radio" data-tipo="giorni">Giorni della settimana</button>
+        </div>
+        <div id="ro-box-data">
+          <div class="field-gap"></div>
+          <label class="field" for="ro-data">Giorno</label>
+          <input class="input" type="date" id="ro-data">
+        </div>
+        <div id="ro-box-giorni" hidden>
+          <div class="days" id="ro-giorni"></div>
+        </div>
+        <div class="field-gap"></div>
+        <label class="field" for="ro-testo">Etichetta</label>
+        <input class="input" id="ro-testo" placeholder="es. Prendi la medicina" enterkeyhint="done" autocapitalize="sentences">
+        <div class="conta-riga"><span class="hint">La scritta che compare sul buddy.</span><span class="conta" id="ro-testo-conta">0/40</span></div>
+        <p class="error" id="ro-errore" role="alert"></p>
+        <button class="btn" type="submit">Salva</button>
+        <button class="btn secondary" type="button" id="ro-annulla">Annulla</button>
+        <button class="btn danger" type="button" id="ro-elimina">Elimina promemoria</button>
+      </form>
+    </dialog>
 
     <!-- METEO -->
     <section class="screen wrap" id="scr-meteo" data-screen="meteo" data-tab="app" hidden>
@@ -686,7 +757,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.6.0";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -707,6 +778,7 @@ const ICONE = {
   pomodoro: '<circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-3 3-4M9 6.5 12 8l3-1.5"/>',
   promemoria: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   sveglia: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/>',
+  radar: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
   meteo: '<path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.7A4 4 0 0 0 8.1 11"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6z"/>',
   contoAllaRovescia: '<path d="M6 2h12M6 22h12M7 2c0 5 5 6 5 10S7 17 7 22M17 2c0 5-5 6-5 10s5 5 5 10"/>',
   respiro: '<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h7"/>',
@@ -719,6 +791,7 @@ const FUNZIONI = [
   { chiave: "promemoria", nome: "Promemoria", pagina: "promemoria" },
   { chiave: null, icona: "sveglia", nome: "Sveglia", pagina: "sveglia" },
   { chiave: "meteo", nome: "Meteo", pagina: "meteo" },
+  { chiave: "radar", nome: "Radar aerei", desc: "Mostra gli aerei che passano sopra casa" },
   { chiave: "contoAllaRovescia", nome: "Conto alla rovescia", desc: "Quanto manca a un evento" },
   { chiave: "respiro", nome: "Respiro", desc: "Qualche respiro lento, guidato" },
   { chiave: "tiPenso", nome: "Ti penso", desc: "Un pensiero che arriva sul buddy" },
@@ -731,13 +804,13 @@ const FUNZIONI = [
   ] }
 ];
 // tutte le chiavi di "funzioni", nell'ordine del protocollo
-const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa"];
+const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "radar", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa"];
 const NOMI_FUNZIONI = {};
 FUNZIONI.forEach(f => { if (f.chiave) NOMI_FUNZIONI[f.chiave] = f.nome; (f.sotto || []).forEach(s => NOMI_FUNZIONI[s.chiave] = s.nome); });
 
 const LS = {
   nome: "deskbuddy.nome", codice: "deskbuddy.codice", cache: "deskbuddy.cache",
-  prova: "deskbuddy.prova", tab: "deskbuddy.tab", sim: "deskbuddy.simAuto"
+  prova: "deskbuddy.prova", tab: "deskbuddy.tab", sim: "deskbuddy.simAuto", avvisoTesto: "deskbuddy.avvisoTesto"
 };
 
 function predefinite() {
@@ -746,6 +819,8 @@ function predefinite() {
     colore: "#00E5FF",
     sveglia: { attiva: false, ora: 7, minuto: 30, giorni: [true, true, true, true, true, false, false] },
     promemoriaMinuti: PROMEMORIA_PREDEFINITO,
+    promemoriaTesto: "Bevi un po' d'acqua",   // messaggio del promemoria a intervalli
+    promemoriaOrari: [],                       // promemoria a un orario (massimo 10)
     citta: "",
     lat: null, lon: null, luogo: "",   // posizione del telefono, arrotondata a 2 decimali
     animazioneMeteo: 1,                // 0 niente · 1 leggero · 2 completo
@@ -801,6 +876,8 @@ function pulisci(x) {
       giorni: g && typeof g === "object" ? Array.from({ length: 7 }, (_, i) => g[i] === true) : d.sveglia.giorni.slice()
     },
     promemoriaMinuti: minuti,
+    promemoriaTesto: typeof x.promemoriaTesto === "string" && testoPulito(x.promemoriaTesto).trim() ? testoPulito(x.promemoriaTesto).trim() : d.promemoriaTesto,
+    promemoriaOrari: pulisciOrari(x.promemoriaOrari),
     citta: typeof x.citta === "string" ? x.citta.slice(0, 60) : d.citta,
     lat: posOk ? Math.round(x.lat * 100) / 100 : null,
     lon: posOk ? Math.round(x.lon * 100) / 100 : null,
@@ -901,7 +978,7 @@ async function invia() {
   S.inviando = true; render();
   const versione = Math.max(Date.now(), (S.imp.versione || 0) + 1);
   const { versione: _v, ...resto } = S.imp;
-  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, funzioni: { ...resto.funzioni }, versione };
+  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, funzioni: { ...resto.funzioni }, promemoriaOrari: resto.promemoriaOrari.map(r => ({ ...r, giorni: r.giorni.slice() })), versione };
   try {
     await dbPut("impostazioni", dati);
     // se nel frattempo l'utente ha cambiato altro, resta "modificato" e si reinvia
@@ -1240,7 +1317,10 @@ function render() {
   const pm = imp.promemoriaMinuti, pmOn = imp.funzioni.promemoria;
   $("#rem-on").checked = pmOn;
   $("#rem-body").classList.toggle("off", !pmOn);
-  $("#rem-summary").textContent = pmOn ? `Ogni ${pm} minuti` : "Spento";
+  const nOrari = imp.promemoriaOrari.filter(r => r.attivo && !scaduto(r)).length;
+  const conOrari = nOrari ? ` · ${nOrari} a orario` : "";
+  $("#rem-summary").textContent = pmOn ? `Ogni ${pm} minuti${conOrari}` : "Spento";
+  renderPromemoriaOrari();
   $("#rem-num").textContent = pm;
   $$("#rem-chips .chip").forEach(b => b.setAttribute("aria-checked", +b.dataset.min === pm));
   $("#rem-minus").disabled = pm <= PROMEMORIA_MIN; $("#rem-plus").disabled = pm >= PROMEMORIA_MAX;
@@ -1276,7 +1356,7 @@ function render() {
     });
   });
   $("#fn-sveglia-desc").textContent = giorniTesto ? `Suona alle ${hhmm} · ${giorniTesto}` : `Alle ${hhmm} · nessun giorno`;
-  $("#fn-promemoria-desc").textContent = `Ti avvisa ogni ${pm} minuti`;
+  $("#fn-promemoria-desc").textContent = `Ogni ${pm} minuti${conOrari}`;
   $("#fn-meteo-desc").textContent = haPosizione(imp) ? `Il tempo a ${imp.luogo || "la tua posizione"}` : imp.citta ? `Il tempo a ${imp.citta}` : "Scegli il luogo";
 
   // impostazioni
@@ -1300,6 +1380,11 @@ function renderInfo() {
   if (st && st.colore) righe.push(["Colore in uso", String(st.colore)]);
   if (st && st.sveglia) righe.push(["Sveglia in uso", st.sveglia.attiva ? `${pad2(st.sveglia.ora)}:${pad2(st.sveglia.minuto)}` : "spenta"]);
   if (st && typeof st.promemoriaMinuti === "number") righe.push(["Promemoria in uso", st.promemoriaMinuti ? st.promemoriaMinuti + " min" : "0 min"]);
+  if (st && typeof st.promemoriaTesto === "string") righe.push(["Messaggio promemoria", st.promemoriaTesto || "—"]);
+  if (st && "promemoriaMinuti" in st) {
+    const or = pulisciOrari(st.promemoriaOrari);
+    righe.push(["Promemoria a orario", or.length ? `${or.length} (${or.filter(r => r.attivo && !scaduto(r)).length} accesi)` : "nessuno"]);
+  }
   if (st && typeof st.citta === "string") righe.push(["Città in uso", st.citta || "—"]);
   if (st && typeof st.lat === "number" && typeof st.lon === "number") righe.push(["Posizione in uso", `${st.luogo ? st.luogo + " · " : ""}${st.lat}, ${st.lon}`]);
   if (st && typeof st.animazioneMeteo === "number") righe.push(["Meteo sugli occhi", (ANIMAZIONI_METEO[st.animazioneMeteo] || {}).nome || String(st.animazioneMeteo)]);
@@ -2482,6 +2567,235 @@ function collegaMeteo() {
   $("#anim-meteo").addEventListener("click", e => { const b = e.target.closest("[data-anim]"); if (b) cambia(i => i.animazioneMeteo = +b.dataset.anim); });
 }
 
+/* =====================================================================
+   PROMEMORIA: messaggio e promemoria a un orario
+   ===================================================================== */
+const ORARI_MAX = 10, TESTO_MAX = 40, TESTO_PREDEFINITO = "Bevi un po' d'acqua";
+const GIORNI_BREVI = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"];
+const MESI_BREVI = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+
+// Il buddy non sa disegnare emoji e lettere accentate: è → e', à → a' … ; le emoji spariscono.
+const ACCENTATE = { "à": "a'", "á": "a'", "è": "e'", "é": "e'", "ì": "i'", "í": "i'", "ò": "o'", "ó": "o'", "ù": "u'", "ú": "u'",
+  "À": "A'", "Á": "A'", "È": "E'", "É": "E'", "Ì": "I'", "Í": "I'", "Ò": "O'", "Ó": "O'", "Ù": "U'", "Ú": "U'" };
+const SIMBOLI = { "’": "'", "‘": "'", "´": "'", "`": "'", "“": '"', "”": '"', "«": '"', "»": '"', "–": "-", "—": "-", "…": "...", "ß": "ss", " ": " " };
+function perBuddy(s) {
+  let testo = "", avviso = false;
+  for (const ch of String(s)) {
+    const cc = ch.codePointAt(0);
+    if (cc >= 32 && cc <= 126) { testo += ch; continue; }
+    if (ACCENTATE[ch]) { testo += ACCENTATE[ch]; avviso = true; continue; }
+    if (SIMBOLI[ch]) { testo += SIMBOLI[ch]; continue; }          // apostrofo "curvo" dell'iPhone ecc.: nessun avviso
+    const base = ch.normalize("NFD").replace(/[̀-ͯ]/g, ""); // ç → c, ñ → n, ü → u
+    if (/^[\x20-\x7e]+$/.test(base)) testo += base;
+    avviso = true;                                                   // emoji e altri segni: tolti
+  }
+  return { testo, avviso };
+}
+const testoPulito = (s, max = TESTO_MAX) => perBuddy(s).testo.replace(/\s+/g, " ").slice(0, max);
+
+function pulisciOrari(v) {
+  const lista = Array.isArray(v) ? v : (v && typeof v === "object") ? Object.values(v) : [];
+  const visti = new Set(), out = [];
+  for (const r of lista) {
+    if (!r || typeof r !== "object" || out.length >= ORARI_MAX) continue;
+    const ora = intIn(r.ora, 0, 23, null), minuto = intIn(r.minuto, 0, 59, null);
+    if (ora == null || minuto == null) continue;
+    let id = typeof r.id === "string" && /^[a-z0-9]{1,16}$/.test(r.id) ? r.id : nuovoId();
+    if (visti.has(id)) id = nuovoId();
+    visti.add(id);
+    const g = r.giorni;
+    out.push({
+      id, attivo: r.attivo !== false, ora, minuto,
+      data: typeof r.data === "string" && dataValida(r.data) ? r.data : null,
+      giorni: Array.from({ length: 7 }, (_, i) => !!(g && g[i] === true)),
+      testo: typeof r.testo === "string" ? testoPulito(r.testo) : ""
+    });
+  }
+  return out;
+}
+function nuovoId() { return (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).slice(0, 16); }
+function dataValida(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s); if (!m) return false;
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  return d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 && d.getDate() === +m[3];
+}
+const dataISO = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+// quando suonerà la prossima volta (millisecondi). null = "una volta sola" già passato · Infinity = nessun giorno scelto
+function prossimaVolta(r, adesso = Date.now()) {
+  const inizioMinuto = adesso - adesso % 60000 - 59999; // conta come "non ancora passato" fino alla fine del suo minuto
+  if (r.data) {
+    const [y, m, d] = r.data.split("-").map(Number);
+    const t = new Date(y, m - 1, d, r.ora, r.minuto).getTime();
+    return t > inizioMinuto ? t : null;
+  }
+  const oggi = new Date(adesso);
+  for (let k = 0; k <= 7; k++) {
+    const t = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() + k, r.ora, r.minuto);
+    if (r.giorni[(t.getDay() + 6) % 7] && t.getTime() > inizioMinuto) return t.getTime();
+  }
+  return Infinity;
+}
+const scaduto = r => r.data != null && prossimaVolta(r) == null;
+function orariOrdinati(lista) {
+  const chiave = r => { const p = prossimaVolta(r); return p == null ? [1, -new Date(r.data).getTime()] : [0, p]; };
+  return lista.map(r => [chiave(r), r]).sort((a, b) => a[0][0] - b[0][0] || a[0][1] - b[0][1]).map(x => x[1]);
+}
+function nomeGiorno(dataStr) {
+  const [y, m, d] = dataStr.split("-").map(Number), g = new Date(y, m - 1, d);
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0);
+  const diff = Math.round((g - oggi) / 86400000);
+  if (diff === 0) return "oggi";
+  if (diff === 1) return "domani";
+  if (diff === -1) return "ieri";
+  return `${GIORNI_BREVI[(g.getDay() + 6) % 7]} ${d} ${MESI_BREVI[m - 1]}${y !== oggi.getFullYear() ? " " + y : ""}`;
+}
+function descriviRipetizione(r) {
+  if (r.data) return `Una volta · ${nomeGiorno(r.data)}`;
+  const g = descriviGiorni(r.giorni) || "nessun giorno";
+  return g[0].toUpperCase() + g.slice(1);
+}
+
+/* ---------- elenco ---------- */
+function renderPromemoriaOrari() {
+  const imp = S.imp, lista = orariOrdinati(imp.promemoriaOrari);
+  $("#ro-list").innerHTML = lista.length ? lista.map(r => {
+    const sc = scaduto(r);
+    return `<div class="ro-row${sc ? " scaduto" : ""}${r.attivo ? "" : " spento"}" data-ro="${r.id}">
+      <button class="ro-main" data-ro-apri="${r.id}" aria-label="Modifica promemoria delle ${pad2(r.ora)}:${pad2(r.minuto)}">
+        <span class="ro-ora">${pad2(r.ora)}:${pad2(r.minuto)}</span>
+        <span class="ro-txt"><span class="ro-testo"></span><span class="ro-rip">${sc ? "Scaduto · " : ""}${descriviRipetizione(r)}</span></span>
+      </button>
+      ${sc ? `<button class="ro-elimina" data-ro-elimina="${r.id}" aria-label="Elimina promemoria scaduto">Elimina</button>`
+           : `<label class="switch"><input type="checkbox" data-ro-on="${r.id}" ${r.attivo ? "checked" : ""} aria-label="Promemoria delle ${pad2(r.ora)}:${pad2(r.minuto)} acceso"><span></span></label>`}
+    </div>`;
+  }).join("") : `<p class="ro-vuoto">Nessun promemoria a orario.</p>`;
+  // l'etichetta la scrivo come testo, non come HTML
+  lista.forEach(r => { $(`[data-ro="${r.id}"] .ro-testo`).textContent = r.testo || "Promemoria"; });
+  const pieno = imp.promemoriaOrari.length >= ORARI_MAX;
+  $("#ro-add").disabled = pieno;
+  $("#ro-pieno").hidden = !pieno;
+  if (document.activeElement !== $("#rem-testo")) { $("#rem-testo").value = imp.promemoriaTesto; contaCaratteri($("#rem-testo"), $("#rem-testo-conta")); }
+}
+
+/* ---------- scrittura dei testi (etichetta e messaggio) ---------- */
+function contaCaratteri(inp, out) { out.textContent = `${inp.value.length}/${TESTO_MAX}`; out.classList.toggle("pieno", inp.value.length >= TESTO_MAX); }
+function puliziaMentreScrivo(inp, out) {
+  const v = inp.value, { testo, avviso } = perBuddy(v);
+  if (testo !== v || testo.length > TESTO_MAX) {
+    // rimetto il cursore nel punto giusto (il pezzo prima del cursore può essersi allungato o accorciato)
+    const pos = perBuddy(v.slice(0, inp.selectionStart ?? v.length)).testo.length;
+    inp.value = testo.slice(0, TESTO_MAX);
+    const c = Math.min(pos, inp.value.length);
+    try { inp.setSelectionRange(c, c); } catch {}
+  }
+  if (avviso && ls.get(LS.avvisoTesto) !== "1") {
+    ls.set(LS.avvisoTesto, "1");
+    toast("Il buddy non sa disegnare emoji e lettere accentate: le trasformo io (è → e').", 4500);
+  }
+  contaCaratteri(inp, out);
+}
+
+/* ---------- finestra per aggiungere / modificare ---------- */
+let roModifica = null; // id del promemoria che sto modificando (null = nuovo)
+let roBozza = null;
+function apriPromemoria(id) {
+  const r = id ? S.imp.promemoriaOrari.find(x => x.id === id) : null;
+  if (!r && S.imp.promemoriaOrari.length >= ORARI_MAX) { toast(`Puoi avere al massimo ${ORARI_MAX} promemoria a orario.`); return; }
+  roModifica = r ? r.id : null;
+  const oraTra = new Date(Date.now() + 3600000);
+  roBozza = r ? { ...r, giorni: r.giorni.slice() }
+              : { attivo: true, ora: oraTra.getHours(), minuto: 0, data: dataISO(oraTra), giorni: [false, false, false, false, false, false, false], testo: "" };
+  roBozza.tipo = roBozza.data ? "una" : "giorni";
+  roBozza.dataScelta = roBozza.data || dataISO(oraTra);
+  $("#ro-titolo").textContent = r ? "Modifica promemoria" : "Nuovo promemoria";
+  $("#ro-ora").value = `${pad2(roBozza.ora)}:${pad2(roBozza.minuto)}`;
+  $("#ro-data").value = roBozza.dataScelta;
+  $("#ro-data").min = dataISO(new Date());
+  $("#ro-testo").value = roBozza.testo;
+  $("#ro-elimina").hidden = !r;
+  $("#ro-errore").textContent = "";
+  renderBozza();
+  contaCaratteri($("#ro-testo"), $("#ro-testo-conta"));
+  const dlg = $("#ro-dialog");
+  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+}
+function renderBozza() {
+  const b = roBozza;
+  $$("#ro-tipo .chip").forEach(c => c.setAttribute("aria-checked", c.dataset.tipo === b.tipo));
+  $("#ro-box-data").hidden = b.tipo !== "una";
+  $("#ro-box-giorni").hidden = b.tipo !== "giorni";
+  $$("#ro-giorni .day").forEach(d => d.setAttribute("aria-pressed", b.giorni[+d.dataset.giorno]));
+}
+function chiudiPromemoria() {
+  const dlg = $("#ro-dialog");
+  if (dlg.close) dlg.close(); else dlg.removeAttribute("open");
+  roBozza = null; roModifica = null;
+}
+function salvaPromemoria() {
+  const b = roBozza; if (!b) return;
+  const m = /^(\d{1,2}):(\d{2})/.exec($("#ro-ora").value);
+  if (!m) { $("#ro-errore").textContent = "Scegli l'ora."; return; }
+  const ora = intIn(+m[1], 0, 23, 0), minuto = intIn(+m[2], 0, 59, 0);
+  let data = null;
+  if (b.tipo === "una") {
+    data = $("#ro-data").value;
+    if (!dataValida(data)) { $("#ro-errore").textContent = "Scegli il giorno."; return; }
+    if (prossimaVolta({ data, ora, minuto }) == null) { $("#ro-errore").textContent = "Questo giorno e quest'ora sono già passati."; return; }
+  } else if (!b.giorni.some(Boolean)) { $("#ro-errore").textContent = "Scegli almeno un giorno della settimana."; return; }
+  const r = { id: roModifica || nuovoId(), attivo: roModifica ? b.attivo : true, ora, minuto, data,
+              giorni: b.tipo === "giorni" ? b.giorni.slice() : [false, false, false, false, false, false, false],
+              testo: testoPulito($("#ro-testo").value).trim() };
+  // cambiando un promemoria scaduto con una data nuova, torna acceso
+  if (roModifica && data && !scaduto(r) && scaduto(S.imp.promemoriaOrari.find(x => x.id === roModifica) || {})) r.attivo = true;
+  cambia(i => {
+    const k = i.promemoriaOrari.findIndex(x => x.id === r.id);
+    if (k >= 0) i.promemoriaOrari[k] = r; else if (i.promemoriaOrari.length < ORARI_MAX) i.promemoriaOrari.push(r);
+  });
+  toast(roModifica ? "Promemoria aggiornato" : "Promemoria aggiunto");
+  chiudiPromemoria();
+}
+function eliminaPromemoria(id) {
+  const r = S.imp.promemoriaOrari.find(x => x.id === id); if (!r) return false;
+  if (!confirm(`Vuoi eliminare il promemoria delle ${pad2(r.ora)}:${pad2(r.minuto)}${r.testo ? ` "${r.testo}"` : ""}?`)) return false;
+  cambia(i => { i.promemoriaOrari = i.promemoriaOrari.filter(x => x.id !== id); });
+  toast("Promemoria eliminato");
+  return true;
+}
+
+function costruisciPromemoria() {
+  $("#ro-giorni").innerHTML = GIORNI.map((g, i) =>
+    `<button type="button" class="day" data-giorno="${i}" aria-label="${g}" aria-pressed="false">${g[0]}</button>`).join("");
+}
+function collegaPromemoria() {
+  $("#ro-add").addEventListener("click", () => apriPromemoria(null));
+  $("#ro-list").addEventListener("click", e => {
+    const a = e.target.closest("[data-ro-apri]"); if (a) { apriPromemoria(a.dataset.roApri); return; }
+    const d = e.target.closest("[data-ro-elimina]"); if (d) eliminaPromemoria(d.dataset.roElimina);
+  });
+  $("#ro-list").addEventListener("change", e => {
+    const id = e.target.dataset.roOn; if (!id) return;
+    cambia(i => { const r = i.promemoriaOrari.find(x => x.id === id); if (r) r.attivo = e.target.checked; });
+  });
+  // finestra
+  $("#ro-tipo").addEventListener("click", e => { const c = e.target.closest("[data-tipo]"); if (c && roBozza) { roBozza.tipo = c.dataset.tipo; renderBozza(); } });
+  $("#ro-giorni").addEventListener("click", e => { const d = e.target.closest("[data-giorno]"); if (d && roBozza) { roBozza.giorni[+d.dataset.giorno] = !roBozza.giorni[+d.dataset.giorno]; renderBozza(); } });
+  $("#ro-form").addEventListener("submit", e => { e.preventDefault(); salvaPromemoria(); });
+  $("#ro-annulla").addEventListener("click", chiudiPromemoria);
+  $("#ro-elimina").addEventListener("click", () => { if (roModifica && eliminaPromemoria(roModifica)) chiudiPromemoria(); });
+  $("#ro-dialog").addEventListener("cancel", () => { roBozza = null; roModifica = null; });
+  $("#ro-testo").addEventListener("input", () => puliziaMentreScrivo($("#ro-testo"), $("#ro-testo-conta")));
+  // messaggio del promemoria a intervalli: si salva quando hai finito di scrivere
+  const msg = $("#rem-testo");
+  msg.addEventListener("input", () => puliziaMentreScrivo(msg, $("#rem-testo-conta")));
+  msg.addEventListener("change", () => {
+    const v = testoPulito(msg.value).trim() || TESTO_PREDEFINITO;
+    msg.value = v; contaCaratteri(msg, $("#rem-testo-conta"));
+    if (v !== S.imp.promemoriaTesto) { cambia(i => i.promemoriaTesto = v); toast("Messaggio salvato"); }
+  });
+  msg.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); msg.blur(); } });
+}
+
 /* ---------- installazione sulla schermata Home ---------- */
 let promptInstalla = null;
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptInstalla = e; });
@@ -2509,9 +2823,11 @@ function mostraInstallazione() {
 costruisci();
 costruisciGiochi();
 costruisciMeteo();
+costruisciPromemoria();
 collegaEventi();
 collegaGiochi();
 collegaMeteo();
+collegaPromemoria();
 leggiHash();
 avvia();
 if ("serviceWorker" in navigator && location.protocol !== "file:") {

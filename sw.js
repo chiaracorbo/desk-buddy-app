@@ -1,7 +1,7 @@
 // Service worker: permette all'app di aprirsi anche senza rete
 // e di essere installata sulla schermata Home.
 // Quando cambi i file dell'app, aumenta questo numero:
-const CACHE = "deskbuddy-v7";
+const CACHE = "deskbuddy-v8";
 const FILE = [
   "./", "./index.html", "./config.js", "./manifest.webmanifest",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png",
