@@ -63,6 +63,9 @@
             "animazioneMeteo": {
               ".validate": "newData.isNumber() && (newData.val() == 0 || newData.val() == 1 || newData.val() == 2)"
             },
+            "promemoriaIntervallo": {
+              ".validate": "newData.isBoolean()"
+            },
             "promemoriaTesto": {
               ".validate": "newData.isString() && newData.val().length <= 40"
             },
@@ -157,6 +160,9 @@
             },
             "animazioneMeteo": {
               ".validate": "newData.isNumber() && (newData.val() == 0 || newData.val() == 1 || newData.val() == 2)"
+            },
+            "promemoriaIntervallo": {
+              ".validate": "newData.isBoolean()"
             },
             "promemoriaTesto": {
               ".validate": "newData.isString() && newData.val().length <= 40"

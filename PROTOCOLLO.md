@@ -53,6 +53,7 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
     "giorni": [true, true, true, true, true, false, false]
   },
   "promemoriaMinuti": 45,
+  "promemoriaIntervallo": true,
   "promemoriaTesto": "Bevi un po' d'acqua",
   "promemoriaOrari": [
     { "id": "m3x9k2ab", "attivo": true, "ora": 8, "minuto": 15, "data": null,
@@ -93,6 +94,7 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
 | `sveglia.minuto` | numero intero | 0–59 | minuti |
 | `sveglia.giorni` | lista di 7 vero/falso | posizione 0 = **lunedì** … 6 = **domenica** | giorni in cui suona. Tutti `false` = non suona mai |
 | `promemoriaMinuti` | numero intero | 5–240 (l'app usa passi di 5) | ogni quanti minuti fare il promemoria. Resta salvato anche quando il promemoria è spento. Vedi nota sotto per lo `0` |
+| `promemoriaIntervallo` | vero/falso | `true` / `false` · se manca: `true` | promemoria "ogni tot minuti" acceso o spento (non tocca quelli a orario) |
 | `promemoriaTesto` | testo | massimo 40 caratteri · solo caratteri semplici (vedi sotto) | messaggio del promemoria a intervalli. Se manca: `"Bevi un po' d'acqua"` |
 | `promemoriaOrari` | lista di oggetti | da 0 a 10 elementi · può mancare (= nessuno) | promemoria a un orario: vedi "I promemoria a orario" sotto |
 | `citta` | testo | massimo 60 caratteri, può essere `""` | città del meteo. `""` = nessuna città |
@@ -117,8 +119,10 @@ Ogni elemento di `promemoriaOrari`:
 
 Regole:
 
-- Un promemoria suona solo se `funzioni.promemoria` è `true` **e** il suo `attivo` è `true`.
-  L'interruttore generale `funzioni.promemoria` vale per tutti e due i tipi (a intervalli e a orario).
+- Un promemoria a orario suona solo se `funzioni.promemoria` è `true` **e** il suo `attivo` è `true`.
+- Il promemoria a intervalli suona solo se `funzioni.promemoria` è `true` **e** `promemoriaIntervallo` è `true`.
+- L'interruttore generale `funzioni.promemoria` spegne tutto; `promemoriaIntervallo` spegne solo quello "ogni tot minuti",
+  così si possono tenere solo i promemoria a orario.
 - **Attenzione a `null` in Firebase**: Firebase non salva i valori `null`, quindi quando la data non c'è
   il buddy **non trova proprio** il campo `data`. Campo mancante = `null` = ripetizione nei giorni.
 - Anche la lista, se è vuota, in Firebase **non c'è**: campo mancante = nessun promemoria a orario.
@@ -169,8 +173,8 @@ Regole:
 - **Fotografia è un gruppo**: una sotto-funzione (`oraDoro`, `sfida`, `diario`, `delusa`) è attiva solo se
   sono `true` **sia** lei **sia** `foto`. Quando `foto` è `false` l'app conserva i valori delle sotto-funzioni
   (così riaccendendo `foto` tornano come prima), ma il buddy deve considerarle tutte spente.
-- **Promemoria**: l'interruttore è `funzioni.promemoria`. Il promemoria suona solo se `funzioni.promemoria` è `true`
-  **e** `promemoriaMinuti` è almeno 5. Per compatibilità con il vecchio protocollo, `promemoriaMinuti: 0` vuol dire
+- **Promemoria**: l'interruttore generale è `funzioni.promemoria`. Il promemoria a intervalli suona solo se `funzioni.promemoria`
+  è `true`, `promemoriaIntervallo` non è `false` **e** `promemoriaMinuti` è almeno 5. Per compatibilità con il vecchio protocollo, `promemoriaMinuti: 0` vuol dire
   ancora "spento" (l'app, se lo trova, lo mostra come interruttore spento e propone 30 minuti).
 - **Buddy e app vecchi**: se `funzioni` manca del tutto, o manca una sua voce, quella funzione va considerata **accesa**.
 - Una funzione spenta resta visibile (in grigio) nella pagina App, così si può riaccendere in qualsiasi momento.
@@ -197,6 +201,7 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
   "colore": "#FF4FA3",
   "sveglia": { "attiva": true, "ora": 7, "minuto": 30, "giorni": [true, true, true, true, true, false, false] },
   "promemoriaMinuti": 45,
+  "promemoriaIntervallo": true,
   "promemoriaTesto": "Bevi un po' d'acqua",
   "promemoriaOrari": [
     { "id": "m3x9k2ab", "attivo": true, "ora": 8, "minuto": 15, "giorni": [true, true, true, true, true, false, false], "testo": "Prendi la medicina" }
@@ -212,7 +217,7 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
 - Stessi campi delle impostazioni, con i valori **effettivamente in uso**.
 - `lat`, `lon`, `luogo`, `animazioneMeteo`: quelli **realmente in uso**. Se il buddy sta usando la città
   (nessuna posizione), non scrive `lat`, `lon` e `luogo`.
-- `promemoriaTesto`, `promemoriaOrari`: il messaggio e l'elenco dei promemoria a orario **realmente in uso**
+- `promemoriaIntervallo`, `promemoriaTesto`, `promemoriaOrari`: l'interruttore, il messaggio e l'elenco dei promemoria a orario **realmente in uso**
   (se il buddy ne tiene meno di 10, scrive solo quelli che usa).
 - `funzioni`: i valori **reali** del buddy, tutte e 13 le chiavi (anche quelle che ha ricevuto mancanti e ha considerato accese).
   Le sotto-funzioni della Fotografia si scrivono con il loro valore così com'è, anche quando `foto` è `false`.
@@ -311,7 +316,7 @@ una con `"stile": 9` deve essere rifiutata.
 > Nota: se aggiungi i campi delle proposte 1–3, vanno aggiunti anche alle regole, altrimenti verranno rifiutati.
 >
 > **Importante (novembre 2026):** il file delle regole ora include anche `funzioni`, `partita`, `partitaStato`
-> e i campi del meteo (`lat`, `lon`, `luogo`, `animazioneMeteo`), `radar`, `promemoriaTesto` e `promemoriaOrari`. Se avevi già pubblicato
+> e i campi del meteo (`lat`, `lon`, `luogo`, `animazioneMeteo`), `radar`, `promemoriaIntervallo`, `promemoriaTesto` e `promemoriaOrari`. Se avevi già pubblicato
 > la versione precedente delle regole, ripubblica quella nuova: la vecchia rifiuterebbe ogni scrittura con `funzioni`
 > (per via di `$altro: false`) e l'app resterebbe su "Non inviato".
 

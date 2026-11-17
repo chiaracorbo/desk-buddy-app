@@ -211,7 +211,7 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
   font-variant-numeric: tabular-nums; min-height: 96px;
 }
 .time-big::-webkit-date-and-time-value { text-align: center; }
-.off .time-big, .off .days, .off#rem-body, .off#meteo-body { opacity: .45; }
+.off .time-big, .off .days, .off#rem-body, .off#rem-int-body, .off#meteo-body { opacity: .45; }
 .meteo-usa { margin: 16px 2px 0; color: var(--text-dim); font-size: var(--fs-s); }
 .meteo-usa b { color: var(--text); }
 .pos-msg { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: var(--fs-s); line-height: 1.45; }
@@ -537,6 +537,14 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
       <div id="rem-body">
         <h2 class="sez">Ogni tot minuti</h2>
         <div class="card">
+          <div class="row">
+            <div><div class="row-label">Ogni tot minuti</div><div class="row-sub" id="rem-int-summary">Acceso</div></div>
+            <label class="switch"><input type="checkbox" id="rem-int-on" aria-label="Promemoria ogni tot minuti attivo"><span></span></label>
+          </div>
+        </div>
+        <div id="rem-int-body">
+        <div class="field-gap"></div>
+        <div class="card">
           <div class="stepper">
             <button id="rem-minus" aria-label="Meno 5 minuti">−</button>
             <output id="rem-out" aria-live="polite"><span class="big-num" id="rem-num">30</span><span class="big-unit">minuti</span></output>
@@ -552,6 +560,7 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
           <div class="conta-riga"><span class="hint">Si salva quando hai finito di scrivere.</span><span class="conta" id="rem-testo-conta">0/40</span></div>
         </div>
         <p class="hint">Anche da spento, il buddy ricorda ogni quanti minuti avevi scelto.</p>
+        </div>
 
         <h2 class="sez">A un orario</h2>
         <div class="card ro-card">
@@ -757,7 +766,7 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "1.6.1";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -819,6 +828,7 @@ function predefinite() {
     colore: "#00E5FF",
     sveglia: { attiva: false, ora: 7, minuto: 30, giorni: [true, true, true, true, true, false, false] },
     promemoriaMinuti: PROMEMORIA_PREDEFINITO,
+    promemoriaIntervallo: true,                // promemoria "ogni tot minuti" acceso
     promemoriaTesto: "Bevi un po' d'acqua",   // messaggio del promemoria a intervalli
     promemoriaOrari: [],                       // promemoria a un orario (massimo 10)
     citta: "",
@@ -876,6 +886,7 @@ function pulisci(x) {
       giorni: g && typeof g === "object" ? Array.from({ length: 7 }, (_, i) => g[i] === true) : d.sveglia.giorni.slice()
     },
     promemoriaMinuti: minuti,
+    promemoriaIntervallo: typeof x.promemoriaIntervallo === "boolean" ? x.promemoriaIntervallo : true,
     promemoriaTesto: typeof x.promemoriaTesto === "string" && testoPulito(x.promemoriaTesto).trim() ? testoPulito(x.promemoriaTesto).trim() : d.promemoriaTesto,
     promemoriaOrari: pulisciOrari(x.promemoriaOrari),
     citta: typeof x.citta === "string" ? x.citta.slice(0, 60) : d.citta,
@@ -1318,8 +1329,12 @@ function render() {
   $("#rem-on").checked = pmOn;
   $("#rem-body").classList.toggle("off", !pmOn);
   const nOrari = imp.promemoriaOrari.filter(r => r.attivo && !scaduto(r)).length;
-  const conOrari = nOrari ? ` · ${nOrari} a orario` : "";
-  $("#rem-summary").textContent = pmOn ? `Ogni ${pm} minuti${conOrari}` : "Spento";
+  const pmInt = imp.promemoriaIntervallo;
+  const descPm = [pmInt ? `Ogni ${pm} minuti` : "", nOrari ? `${nOrari} a orario` : ""].filter(Boolean).join(" · ") || "Nessun promemoria attivo";
+  $("#rem-summary").textContent = pmOn ? descPm : "Spento";
+  $("#rem-int-on").checked = pmInt;
+  $("#rem-int-body").classList.toggle("off", !pmInt);
+  $("#rem-int-summary").textContent = pmInt ? `Ogni ${pm} minuti` : "Spento";
   renderPromemoriaOrari();
   $("#rem-num").textContent = pm;
   $$("#rem-chips .chip").forEach(b => b.setAttribute("aria-checked", +b.dataset.min === pm));
@@ -1356,7 +1371,7 @@ function render() {
     });
   });
   $("#fn-sveglia-desc").textContent = giorniTesto ? `Suona alle ${hhmm} · ${giorniTesto}` : `Alle ${hhmm} · nessun giorno`;
-  $("#fn-promemoria-desc").textContent = `Ogni ${pm} minuti${conOrari}`;
+  $("#fn-promemoria-desc").textContent = descPm;
   $("#fn-meteo-desc").textContent = haPosizione(imp) ? `Il tempo a ${imp.luogo || "la tua posizione"}` : imp.citta ? `Il tempo a ${imp.citta}` : "Scegli il luogo";
 
   // impostazioni
@@ -1380,6 +1395,7 @@ function renderInfo() {
   if (st && st.colore) righe.push(["Colore in uso", String(st.colore)]);
   if (st && st.sveglia) righe.push(["Sveglia in uso", st.sveglia.attiva ? `${pad2(st.sveglia.ora)}:${pad2(st.sveglia.minuto)}` : "spenta"]);
   if (st && typeof st.promemoriaMinuti === "number") righe.push(["Promemoria in uso", st.promemoriaMinuti ? st.promemoriaMinuti + " min" : "0 min"]);
+  if (st && typeof st.promemoriaIntervallo === "boolean") righe.push(["Ogni tot minuti", st.promemoriaIntervallo ? "acceso" : "spento"]);
   if (st && typeof st.promemoriaTesto === "string") righe.push(["Messaggio promemoria", st.promemoriaTesto || "—"]);
   if (st && "promemoriaMinuti" in st) {
     const or = pulisciOrari(st.promemoriaOrari);
@@ -1498,6 +1514,7 @@ function collegaEventi() {
     cambia(i => { if (k === "sveglia") i.sveglia.attiva = on; else i.funzioni[k] = on; });
   });
   $("#rem-on").addEventListener("change", e => cambia(i => i.funzioni.promemoria = e.target.checked));
+  $("#rem-int-on").addEventListener("change", e => cambia(i => i.promemoriaIntervallo = e.target.checked));
   $("#meteo-on").addEventListener("change", e => cambia(i => i.funzioni.meteo = e.target.checked));
   $("#giochi-on").addEventListener("change", e => cambia(i => i.funzioni.giochi = e.target.checked));
   $("#sync").addEventListener("click", () => toast(SPIEGAZIONI_SYNC[statoSync()], 4000));
