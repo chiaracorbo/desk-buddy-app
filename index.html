@@ -211,7 +211,17 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
   font-variant-numeric: tabular-nums; min-height: 96px;
 }
 .time-big::-webkit-date-and-time-value { text-align: center; }
-.off .time-big, .off .days, .off#rem-body, .off#city-form { opacity: .45; }
+.off .time-big, .off .days, .off#rem-body, .off#meteo-body { opacity: .45; }
+.meteo-usa { margin: 16px 2px 0; color: var(--text-dim); font-size: var(--fs-s); }
+.meteo-usa b { color: var(--text); }
+.pos-msg { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: var(--fs-s); line-height: 1.45; }
+.pos-msg.err { color: var(--text); border: 1px solid color-mix(in srgb, var(--err) 45%, transparent); }
+.pos-msg.warn { border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); }
+.pos-msg.ok:empty { display: none; }
+.anim-meteo { grid-template-columns: repeat(3, 1fr); }
+.anim-meteo .style-btn { padding: 10px 6px 12px; }
+.anim-meteo .style-btn canvas { max-width: 104px; }
+.anim-desc { font-size: 11px; font-weight: 500; color: var(--text-faint); line-height: 1.25; text-align: center; padding: 0 2px; }
 
 /* ---------- pagina App: elenco delle funzioni ---------- */
 .fn-list { display: flex; flex-direction: column; gap: var(--gap); margin-top: 16px; }
@@ -516,21 +526,37 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
     <section class="screen wrap" id="scr-meteo" data-screen="meteo" data-tab="app" hidden>
       <button class="back" data-go="app">‹ App</button>
       <h1>Meteo</h1>
-      <p class="lead">Il buddy mostra il meteo di questa città.</p>
+      <p class="lead">Il buddy mostra il meteo del luogo dove si trova.</p>
       <div class="card">
         <div class="row">
           <div><div class="row-label">Meteo attivo</div><div class="row-sub" id="meteo-summary">Acceso</div></div>
           <label class="switch"><input type="checkbox" id="meteo-on" aria-label="Meteo attivo"><span></span></label>
         </div>
       </div>
-      <div class="field-gap"></div>
-      <form id="city-form" class="card" autocomplete="off">
-        <label class="field" for="city">Città</label>
-        <input class="input" id="city" maxlength="60" placeholder="es. Milano" enterkeyhint="done" autocapitalize="words">
-        <div class="field-gap"></div>
-        <button class="btn" type="submit" id="city-save">Salva città</button>
-        <p class="hint" id="city-hint"></p>
-      </form>
+      <div id="meteo-body">
+        <p class="meteo-usa" id="meteo-usa" aria-live="polite"></p>
+
+        <h2>Dove si trova il buddy</h2>
+        <div class="card">
+          <button class="btn" type="button" id="pos-btn">Usa la mia posizione</button>
+          <p class="hint">Premilo quando sei a casa, vicino al buddy.</p>
+          <div class="pos-msg" id="pos-msg" role="status" hidden></div>
+          <button class="btn secondary" type="button" id="pos-togli" style="margin-top:12px" hidden>Togli la posizione e usa la città</button>
+          <p class="hint">Salvo la posizione arrotondata (circa 1 km), non quella esatta di casa.</p>
+        </div>
+
+        <div class="divider">oppure</div>
+        <form id="city-form" class="card" autocomplete="off">
+          <label class="field" for="city">Città</label>
+          <input class="input" id="city" maxlength="60" placeholder="es. Milano" enterkeyhint="done" autocapitalize="words">
+          <div class="field-gap"></div>
+          <button class="btn" type="submit" id="city-save">Salva città</button>
+          <p class="hint" id="city-hint"></p>
+        </form>
+
+        <h2>Come si vede sugli occhi</h2>
+        <div class="styles anim-meteo" id="anim-meteo" role="radiogroup" aria-label="Animazione del meteo sugli occhi"></div>
+      </div>
     </section>
 
     <!-- GIOCHI: elenco dei giochi (si apre dal menu in basso o dalla scheda Giochi della pagina App) -->
@@ -660,7 +686,7 @@ label.field { display: block; font-weight: 600; font-size: var(--fs-s); margin: 
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.5.0";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -721,6 +747,8 @@ function predefinite() {
     sveglia: { attiva: false, ora: 7, minuto: 30, giorni: [true, true, true, true, true, false, false] },
     promemoriaMinuti: PROMEMORIA_PREDEFINITO,
     citta: "",
+    lat: null, lon: null, luogo: "",   // posizione del telefono, arrotondata a 2 decimali
+    animazioneMeteo: 1,                // 0 niente · 1 leggero · 2 completo
     funzioni: Object.fromEntries(CHIAVI_FUNZIONI.map(k => [k, true])) // tutto acceso
   };
 }
@@ -760,6 +788,8 @@ function pulisci(x) {
   const funzioni = Object.fromEntries(CHIAVI_FUNZIONI.map(k => [k, typeof fz[k] === "boolean" ? fz[k] : true]));
   // nel vecchio protocollo promemoriaMinuti = 0 voleva dire "spento": diventa interruttore spento + minuti predefiniti
   let minuti = intIn(x.promemoriaMinuti, 0, PROMEMORIA_MAX, d.promemoriaMinuti);
+  // lat e lon valgono solo se ci sono tutte e due e sono numeri sensati
+  const posOk = typeof x.lat === "number" && typeof x.lon === "number" && Math.abs(x.lat) <= 90 && Math.abs(x.lon) <= 180;
   if (minuti < PROMEMORIA_MIN) { funzioni.promemoria = false; minuti = PROMEMORIA_PREDEFINITO; }
   return {
     stile: intIn(x.stile, 0, 7, d.stile),
@@ -772,6 +802,10 @@ function pulisci(x) {
     },
     promemoriaMinuti: minuti,
     citta: typeof x.citta === "string" ? x.citta.slice(0, 60) : d.citta,
+    lat: posOk ? Math.round(x.lat * 100) / 100 : null,
+    lon: posOk ? Math.round(x.lon * 100) / 100 : null,
+    luogo: posOk && typeof x.luogo === "string" ? x.luogo.slice(0, 80) : "",
+    animazioneMeteo: intIn(x.animazioneMeteo, 0, 2, d.animazioneMeteo),
     funzioni,
     versione: typeof x.versione === "number" ? x.versione : null
   };
@@ -1217,11 +1251,15 @@ function render() {
 
   const meteoOn = imp.funzioni.meteo;
   $("#meteo-on").checked = meteoOn;
-  $("#city-form").classList.toggle("off", !meteoOn);
+  $("#meteo-body").classList.toggle("off", !meteoOn);
   $("#meteo-summary").textContent = meteoOn ? "Acceso" : "Spento";
   if (document.activeElement !== $("#city")) $("#city").value = imp.citta;
-  $("#city-hint").textContent = imp.citta ? `Il buddy userà: ${imp.citta}` : "Nessuna città impostata.";
-  $("#city-save").disabled = $("#city").value.trim() === imp.citta;
+  $("#city-hint").textContent = haPosizione(imp)
+    ? "Se salvi una città, la posizione del telefono viene tolta."
+    : imp.citta ? `Città salvata: ${imp.citta}` : "Nessuna città salvata.";
+  $("#city-save").disabled = !$("#city").value.trim() || ($("#city").value.trim() === imp.citta && !haPosizione(imp));
+  renderMeteoPos();
+  $$("#anim-meteo .style-btn").forEach(b => b.setAttribute("aria-checked", +b.dataset.anim === imp.animazioneMeteo));
 
   // pagina App
   const fnAccesa = k => k === "sveglia" ? sv.attiva : imp.funzioni[k];
@@ -1239,7 +1277,7 @@ function render() {
   });
   $("#fn-sveglia-desc").textContent = giorniTesto ? `Suona alle ${hhmm} · ${giorniTesto}` : `Alle ${hhmm} · nessun giorno`;
   $("#fn-promemoria-desc").textContent = `Ti avvisa ogni ${pm} minuti`;
-  $("#fn-meteo-desc").textContent = imp.citta ? `Il tempo a ${imp.citta}` : "Scegli la città";
+  $("#fn-meteo-desc").textContent = haPosizione(imp) ? `Il tempo a ${imp.luogo || "la tua posizione"}` : imp.citta ? `Il tempo a ${imp.citta}` : "Scegli il luogo";
 
   // impostazioni
   if (S.tab === "impostazioni") renderInfo();
@@ -1263,6 +1301,8 @@ function renderInfo() {
   if (st && st.sveglia) righe.push(["Sveglia in uso", st.sveglia.attiva ? `${pad2(st.sveglia.ora)}:${pad2(st.sveglia.minuto)}` : "spenta"]);
   if (st && typeof st.promemoriaMinuti === "number") righe.push(["Promemoria in uso", st.promemoriaMinuti ? st.promemoriaMinuti + " min" : "0 min"]);
   if (st && typeof st.citta === "string") righe.push(["Città in uso", st.citta || "—"]);
+  if (st && typeof st.lat === "number" && typeof st.lon === "number") righe.push(["Posizione in uso", `${st.luogo ? st.luogo + " · " : ""}${st.lat}, ${st.lon}`]);
+  if (st && typeof st.animazioneMeteo === "number") righe.push(["Meteo sugli occhi", (ANIMAZIONI_METEO[st.animazioneMeteo] || {}).nome || String(st.animazioneMeteo)]);
   if (st) {
     const fz = st.funzioni && typeof st.funzioni === "object" ? st.funzioni : null;
     const spente = fz ? CHIAVI_FUNZIONI.filter(k => fz[k] === false).map(k => NOMI_FUNZIONI[k]) : [];
@@ -1294,6 +1334,7 @@ function vai(tab) {
   window.scrollTo(0, 0);
   render();
   if (tab === "occhi") { requestAnimationFrame(() => { adattaCanvas($("#preview")); disegnaMiniature(); avviaAnimazione(); }); }
+  if (tab === "meteo") requestAnimationFrame(avviaAnteprimeMeteo);
 }
 
 /* =====================================================================
@@ -1412,14 +1453,16 @@ function collegaEventi() {
   $("#rem-plus").addEventListener("click", () => passo(PROMEMORIA_PASSO));
 
   // meteo
-  $("#city").addEventListener("input", () => { $("#city-save").disabled = $("#city").value.trim() === S.imp.citta; });
+  $("#city").addEventListener("input", () => { const v = $("#city").value.trim(); $("#city-save").disabled = !v || (v === S.imp.citta && !haPosizione(S.imp)); });
   $("#city-form").addEventListener("submit", e => {
     e.preventDefault();
     const v = $("#city").value.trim().replace(/\s+/g, " ").slice(0, 60);
     $("#city").blur();
-    if (v === S.imp.citta) return;
-    cambia(i => i.citta = v);
-    toast(v ? `Città salvata: ${v}` : "Città tolta");
+    if (!v || (v === S.imp.citta && !haPosizione(S.imp))) return;
+    // la posizione del telefono avrebbe la precedenza: scegliendo una città la tolgo
+    cambia(i => { i.citta = v; i.lat = null; i.lon = null; i.luogo = ""; });
+    mostraEsitoPosizione("", "");
+    toast(`Città salvata: ${v}`);
   });
 
   // mostra/nascondi codice
@@ -2280,6 +2323,165 @@ function collegaGiochi() {
   $("#pt-ancora").addEventListener("click", () => { if (G) apriGioco(G.gioco); });
 }
 
+/* =====================================================================
+   METEO: posizione del telefono e animazione sugli occhi
+   ===================================================================== */
+const ANIMAZIONI_METEO = [
+  { nome: "Niente", desc: "Solo gli occhi" },
+  { nome: "Leggero", desc: "Piccola icona in alto" },
+  { nome: "Completo", desc: "Gocce, nuvole, occhiali, sciarpa" }
+];
+const arrotonda2 = x => Math.round(x * 100) / 100;     // 2 decimali ≈ 1 km: niente posizione esatta di casa
+const haPosizione = imp => imp.lat != null && imp.lon != null;
+
+// Nome del luogo dalle coordinate (già arrotondate).
+// 1° BigDataCloud "reverse-geocode-client": gratuito, senza chiave, pensato per le app nel browser.
+// 2° di riserva: Nominatim di OpenStreetMap (gratuito, senza chiave, massimo 1 richiesta al secondo).
+async function conTempoMassimo(url, ms = 8000) {
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+  try { const r = await fetch(url, { signal: ctl.signal, cache: "no-store" }); if (!r.ok) throw new Error(r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
+async function nomeLuogo(lat, lon) {
+  try {
+    const j = await conTempoMassimo(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=it`);
+    const n = j.city || j.locality || j.principalSubdivision;
+    if (n) return String(n).slice(0, 80);
+  } catch {}
+  try {
+    const j = await conTempoMassimo(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=10&accept-language=it`);
+    const a = j.address || {};
+    const n = a.city || a.town || a.village || a.municipality || a.county;
+    if (n) return String(n).slice(0, 80);
+  } catch {}
+  return "";
+}
+const ISTRUZIONI_PERMESSO = {
+  ios: "<b>iPhone:</b> apri <b>Impostazioni</b> → <b>Privacy e sicurezza</b> → <b>Localizzazione</b> (deve essere attiva) → <b>Siti web di Safari</b> → scegli <b>Mentre usi l'app</b>. Poi in Safari tocca <b>aA</b> nella barra dell'indirizzo → <b>Impostazioni sito web</b> → <b>Posizione</b> → <b>Consenti</b>, e riprova.",
+  android: "<b>Android (Chrome):</b> tocca l'icona a sinistra dell'indirizzo (il lucchetto o le due righe) → <b>Autorizzazioni</b> → <b>Posizione</b> → <b>Consenti</b>. Controlla anche che la <b>Posizione</b> del telefono sia attiva (tendina in alto), poi riprova."
+};
+function mostraEsitoPosizione(tipo, html) {
+  const box = $("#pos-msg");
+  box.hidden = !html; box.className = "pos-msg" + (tipo ? " " + tipo : ""); box.innerHTML = html || "";
+}
+let cercoPosizione = false;
+async function usaPosizione() {
+  if (cercoPosizione) return;
+  if (!("geolocation" in navigator) || !window.isSecureContext) {
+    mostraEsitoPosizione("err", "Questo browser non può leggere la posizione. Scrivi la città qui sotto."); return;
+  }
+  if (navigator.onLine === false) {
+    mostraEsitoPosizione("err", "Nessuna connessione a internet. Collegati e riprova (oppure scrivi la città più tardi)."); return;
+  }
+  cercoPosizione = true; renderMeteoPos(); mostraEsitoPosizione("", "");
+  try {
+    const p = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }));
+    const lat = arrotonda2(p.coords.latitude), lon = arrotonda2(p.coords.longitude);
+    const luogo = await nomeLuogo(lat, lon);           // al servizio arrivano solo le coordinate arrotondate
+    cambia(i => { i.lat = lat; i.lon = lon; i.luogo = luogo; });
+    if (luogo) { mostraEsitoPosizione("ok", ""); toast(`Posizione salvata: ${luogo}`); }
+    else mostraEsitoPosizione("warn", navigator.onLine === false
+      ? "Posizione salvata, ma senza connessione non ho trovato il nome del luogo. Riprova quando sei online."
+      : "Posizione salvata. Non ho trovato il nome del luogo, ma il buddy userà lo stesso le coordinate.");
+  } catch (e) {
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (e && e.code === 1) mostraEsitoPosizione("err", "Non hai dato il permesso di usare la posizione.<br>" + (ios ? ISTRUZIONI_PERMESSO.ios + "<br>" + ISTRUZIONI_PERMESSO.android : ISTRUZIONI_PERMESSO.android + "<br>" + ISTRUZIONI_PERMESSO.ios));
+    else if (e && (e.code === 2 || e.code === 3)) mostraEsitoPosizione("err", navigator.onLine === false
+      ? "Nessuna connessione: senza internet il telefono fatica a trovare la posizione. Riprova quando sei online."
+      : "Non riesco a trovare la posizione. Controlla che la localizzazione del telefono sia attiva e riprova (vicino a una finestra va meglio).");
+    else mostraEsitoPosizione("err", "Qualcosa è andato storto. Riprova, oppure scrivi la città qui sotto.");
+  } finally {
+    cercoPosizione = false; renderMeteoPos();
+  }
+}
+function togliPosizione() {
+  cambia(i => { i.lat = null; i.lon = null; i.luogo = ""; });
+  mostraEsitoPosizione("", "");
+  toast(S.imp.citta ? `Il buddy userà la città: ${S.imp.citta}` : "Posizione tolta");
+}
+function testoLuogo(imp) {
+  if (haPosizione(imp)) return `${imp.luogo || `${imp.lat}, ${imp.lon}`} (dalla tua posizione)`;
+  return imp.citta || "";
+}
+function renderMeteoPos() {
+  const imp = S.imp, pos = haPosizione(imp);
+  $("#pos-btn").disabled = cercoPosizione;
+  $("#pos-btn").textContent = cercoPosizione ? "Cerco la posizione…" : pos ? "Aggiorna la mia posizione" : "Usa la mia posizione";
+  $("#pos-togli").hidden = !pos;
+  $("#meteo-usa").innerHTML = "";
+  const forte = document.createElement("b");
+  forte.textContent = testoLuogo(imp) || "nessun luogo";
+  $("#meteo-usa").append(pos || imp.citta ? "Il buddy userà: " : "Il buddy non ha ancora un luogo: ", forte);
+}
+
+/* ---------- anteprime dell'animazione meteo ---------- */
+function nuvola(c, x, y, s, col) {
+  c.fillStyle = col; c.beginPath();
+  c.arc(x - s * .55, y + s * .1, s * .45, 0, Math.PI * 2);
+  c.arc(x, y - s * .15, s * .6, 0, Math.PI * 2);
+  c.arc(x + s * .6, y + s * .12, s * .42, 0, Math.PI * 2);
+  c.fill(); c.fillRect(x - s * .55, y + s * .1, s * 1.15, s * .45);
+}
+function sole(c, x, y, s) {
+  c.fillStyle = "#FFD60A"; c.strokeStyle = "#FFD60A"; c.lineWidth = s * .14; c.lineCap = "round";
+  c.beginPath(); c.arc(x, y, s * .45, 0, Math.PI * 2); c.fill();
+  for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; c.beginPath(); c.moveTo(x + Math.cos(a) * s * .65, y + Math.sin(a) * s * .65); c.lineTo(x + Math.cos(a) * s * .9, y + Math.sin(a) * s * .9); c.stroke(); }
+}
+function gocce(c, x, y, s, n) {
+  c.strokeStyle = "#5AB0FF"; c.lineWidth = s * .12; c.lineCap = "round";
+  for (let k = 0; k < n; k++) { const dx = (k - (n - 1) / 2) * s * .5, dy = (k % 2) * s * .35; c.beginPath(); c.moveTo(x + dx, y + dy); c.lineTo(x + dx - s * .12, y + dy + s * .38); c.stroke(); }
+}
+function fiocco(c, x, y, s) {
+  c.strokeStyle = "#E8F4FF"; c.lineWidth = s * .12; c.lineCap = "round";
+  for (let k = 0; k < 3; k++) { const a = k * Math.PI / 3; c.beginPath(); c.moveTo(x - Math.cos(a) * s * .5, y - Math.sin(a) * s * .5); c.lineTo(x + Math.cos(a) * s * .5, y + Math.sin(a) * s * .5); c.stroke(); }
+}
+// scena: 0 sole, 1 pioggia, 2 freddo (le anteprime le alternano)
+function disegnaMeteo(canvas, livello, scena) {
+  disegnaOcchi(canvas, S.imp.stile, S.imp.colore, { open: 1, px: 0, py: 0, t: 0 });
+  if (!livello) return;
+  const c = canvas.getContext("2d");                 // disegnaOcchi ha già impostato la scala 466×466
+  if (livello === 1) {                                // piccola icona in alto
+    if (scena === 0) sole(c, C, 82, 70);
+    else if (scena === 1) { nuvola(c, C, 70, 60, "#CFD3DC"); gocce(c, C, 118, 40, 3); }
+    else fiocco(c, C, 84, 80);
+    return;
+  }
+  if (scena === 0) {                                  // completo: occhiali da sole
+    c.fillStyle = "rgba(16,16,20,.94)"; c.strokeStyle = "#E8E8EE"; c.lineWidth = 7;
+    for (const l of [-1, 1]) { rr(c, C + l * DISTANZA - 72, C - 52, 144, 100, 34); c.fill(); c.stroke(); }
+    c.beginPath(); c.moveTo(C - DISTANZA + 72, C - 20); c.quadraticCurveTo(C, C - 44, C + DISTANZA - 72, C - 20); c.stroke();
+    sole(c, C + 110, 84, 74);
+  } else if (scena === 1) {                           // nuvola con tante gocce
+    nuvola(c, C, 84, 96, "#CFD3DC"); gocce(c, C - 10, 150, 56, 5); gocce(c, C + 10, 330, 52, 6);
+  } else {                                            // sciarpa e fiocchi di neve
+    c.fillStyle = "#FF3B30"; rr(c, C - 150, 330, 300, 46, 22); c.fill();
+    c.fillStyle = "#FFFFFF"; for (let k = -2; k <= 2; k++) c.fillRect(C + k * 56 - 6, 332, 12, 42);
+    c.fillStyle = "#FF3B30"; rr(c, C + 60, 360, 46, 90, 16); c.fill();
+    fiocco(c, C - 120, 96, 70); fiocco(c, C + 130, 110, 56); fiocco(c, C, 64, 46);
+  }
+}
+let scenaMeteo = 0, timerScene = 0;
+function disegnaAnteprimeMeteo() {
+  $$("#anim-meteo .style-btn").forEach(b => { const cv = b.querySelector("canvas"); adattaCanvas(cv); disegnaMeteo(cv, +b.dataset.anim, scenaMeteo); });
+}
+function avviaAnteprimeMeteo() {
+  clearInterval(timerScene); disegnaAnteprimeMeteo();
+  if (pocoMovimento.matches) return;
+  timerScene = setInterval(() => {
+    if (S.tab !== "meteo" || document.visibilityState !== "visible") { clearInterval(timerScene); return; }
+    scenaMeteo = (scenaMeteo + 1) % 3; disegnaAnteprimeMeteo();
+  }, 1800);
+}
+function costruisciMeteo() {
+  $("#anim-meteo").innerHTML = ANIMAZIONI_METEO.map((a, i) =>
+    `<button class="style-btn" role="radio" data-anim="${i}" aria-label="${a.nome}: ${a.desc}"><canvas width="144" height="144"></canvas>${a.nome}<span class="anim-desc">${a.desc}</span></button>`).join("");
+}
+function collegaMeteo() {
+  $("#pos-btn").addEventListener("click", usaPosizione);
+  $("#pos-togli").addEventListener("click", togliPosizione);
+  $("#anim-meteo").addEventListener("click", e => { const b = e.target.closest("[data-anim]"); if (b) cambia(i => i.animazioneMeteo = +b.dataset.anim); });
+}
+
 /* ---------- installazione sulla schermata Home ---------- */
 let promptInstalla = null;
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptInstalla = e; });
@@ -2306,8 +2508,10 @@ function mostraInstallazione() {
    ===================================================================== */
 costruisci();
 costruisciGiochi();
+costruisciMeteo();
 collegaEventi();
 collegaGiochi();
+collegaMeteo();
 leggiHash();
 avvia();
 if ("serviceWorker" in navigator && location.protocol !== "file:") {

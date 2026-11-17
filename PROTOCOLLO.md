@@ -54,6 +54,10 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
   },
   "promemoriaMinuti": 45,
   "citta": "Torino",
+  "lat": 42.76,
+  "lon": 11.11,
+  "luogo": "Grosseto",
+  "animazioneMeteo": 2,
   "funzioni": {
     "pomodoro": true,
     "promemoria": true,
@@ -82,8 +86,24 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
 | `sveglia.giorni` | lista di 7 vero/falso | posizione 0 = **lunedì** … 6 = **domenica** | giorni in cui suona. Tutti `false` = non suona mai |
 | `promemoriaMinuti` | numero intero | 5–240 (l'app usa passi di 5) | ogni quanti minuti fare il promemoria. Resta salvato anche quando il promemoria è spento. Vedi nota sotto per lo `0` |
 | `citta` | testo | massimo 60 caratteri, può essere `""` | città del meteo. `""` = nessuna città |
+| `lat`, `lon` | numeri con 2 decimali | lat −90…90, lon −180…180 · possono mancare | posizione del telefono per il meteo, **arrotondata** (circa 1 km) |
+| `luogo` | testo | massimo 80 caratteri · può mancare | nome del luogo da mostrare (es. `"Grosseto"`), trovato dalle coordinate |
+| `animazioneMeteo` | numero intero | `0` · `1` · `2` | come si vede il meteo sugli occhi: 0 niente · 1 leggero (piccola icona in alto) · 2 completo (gocce, nuvole, occhiali da sole, sciarpa). Se manca: `1` |
 | `funzioni` | oggetto di vero/falso | vedi tabella sotto | quali funzioni del buddy sono accese |
 | `versione` | numero intero | millisecondi dal 1/1/1970 | "numero di serie" della modifica: cambia ogni volta |
+
+### Il luogo del meteo
+
+- **Se ci sono `lat` e `lon` validi** (tutti e due numeri, nei limiti), il buddy usa **quelli** per il meteo.
+- **Altrimenti** usa `citta`, come prima.
+- `luogo` serve solo da mostrare (sul buddy, se vuoi): non va usato per cercare il meteo.
+- L'app scrive `lat`, `lon` e `luogo` quando premi **Usa la mia posizione**, e li **toglie** (non li scrive più)
+  quando salvi una città o premi **Togli la posizione**.
+- Con le coordinate si può chiedere il meteo direttamente, per esempio a Open-Meteo
+  (gratuito, senza chiave): `https://api.open-meteo.com/v1/forecast?latitude=42.76&longitude=11.11&current=weather_code,temperature_2m`.
+- Privacy: l'app arrotonda sempre a 2 decimali **prima** di salvare o mandare le coordinate a qualunque servizio.
+  Il nome del luogo lo chiede a BigDataCloud (servizio gratuito senza chiave per le app nel browser) e, se non risponde,
+  a Nominatim di OpenStreetMap.
 
 ### L'oggetto `funzioni`
 
@@ -139,6 +159,7 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
   "sveglia": { "attiva": true, "ora": 7, "minuto": 30, "giorni": [true, true, true, true, true, false, false] },
   "promemoriaMinuti": 45,
   "citta": "Torino",
+  "lat": 42.76, "lon": 11.11, "luogo": "Grosseto", "animazioneMeteo": 2,
   "funzioni": { "pomodoro": true, "promemoria": true, "meteo": true, "contoAllaRovescia": false, "respiro": true, "tiPenso": true, "giochi": true, "foto": true, "oraDoro": true, "sfida": false, "diario": true, "delusa": true },
   "versione": 1794776259675,
   "ultimoContatto": { ".sv": "timestamp" }
@@ -146,6 +167,8 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
 ```
 
 - Stessi campi delle impostazioni, con i valori **effettivamente in uso**.
+- `lat`, `lon`, `luogo`, `animazioneMeteo`: quelli **realmente in uso**. Se il buddy sta usando la città
+  (nessuna posizione), non scrive `lat`, `lon` e `luogo`.
 - `funzioni`: i valori **reali** del buddy, tutte e 12 le chiavi (anche quelle che ha ricevuto mancanti e ha considerato accese).
   Le sotto-funzioni della Fotografia si scrivono con il loro valore così com'è, anche quando `foto` è `false`.
 - `versione`: la versione delle impostazioni applicate (ricopiata). Se il buddy non ha mai ricevuto impostazioni, `0`.
@@ -242,7 +265,8 @@ una con `"stile": 9` deve essere rifiutata.
 
 > Nota: se aggiungi i campi delle proposte 1–3, vanno aggiunti anche alle regole, altrimenti verranno rifiutati.
 >
-> **Importante (novembre 2026):** il file delle regole ora include anche `funzioni`, `partita` e `partitaStato`. Se avevi già pubblicato
+> **Importante (novembre 2026):** il file delle regole ora include anche `funzioni`, `partita`, `partitaStato`
+> e i campi del meteo (`lat`, `lon`, `luogo`, `animazioneMeteo`). Se avevi già pubblicato
 > la versione precedente delle regole, ripubblica quella nuova: la vecchia rifiuterebbe ogni scrittura con `funzioni`
 > (per via di `$altro: false`) e l'app resterebbe su "Non inviato".
 

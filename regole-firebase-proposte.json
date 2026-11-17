@@ -51,6 +51,18 @@
             "versione": {
               ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 86400000"
             },
+            "lat": {
+              ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+            },
+            "lon": {
+              ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+            },
+            "luogo": {
+              ".validate": "newData.isString() && newData.val().length <= 80"
+            },
+            "animazioneMeteo": {
+              ".validate": "newData.isNumber() && (newData.val() == 0 || newData.val() == 1 || newData.val() == 2)"
+            },
             "$altro": {
               ".validate": false
             }
@@ -98,6 +110,18 @@
             },
             "ultimoContatto": {
               ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+            },
+            "lat": {
+              ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+            },
+            "lon": {
+              ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+            },
+            "luogo": {
+              ".validate": "newData.isString() && newData.val().length <= 80"
+            },
+            "animazioneMeteo": {
+              ".validate": "newData.isNumber() && (newData.val() == 0 || newData.val() == 1 || newData.val() == 2)"
             },
             "$altro": {
               ".validate": false

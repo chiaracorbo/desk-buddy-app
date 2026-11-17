@@ -1,7 +1,8 @@
 # Desk Buddy — app
 
 Webapp per controllare il Desk Buddy (ESP32-S3 con schermo AMOLED rotondo 466×466) dal telefono:
-occhi (stile e colore) e funzioni del buddy (accese/spente, con sveglia, promemoria e città del meteo).
+occhi (stile e colore) e funzioni del buddy (accese/spente, con sveglia, promemoria e meteo:
+posizione del telefono o città, e come si vede sugli occhi).
 
 **Link dell'app:** https://chiaracorbo.github.io/desk-buddy-app/
 (funziona dopo aver attivato GitHub Pages, vedi sotto)
