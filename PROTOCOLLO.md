@@ -61,6 +61,11 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
     { "id": "m3x9p7cd", "attivo": true, "ora": 17, "minuto": 30, "data": "2026-11-20",
       "giorni": [false, false, false, false, false, false, false], "testo": "Chiama la nonna" }
   ],
+  "dateDallApp": true,
+  "dateImportanti": [
+    { "id": "m3xa1b2c", "nome": "Compleanno di Ale", "giorno": 3, "mese": 12, "anno": 0 },
+    { "id": "m3xa9d8e", "nome": "Viaggio a Parigi", "giorno": 14, "mese": 2, "anno": 2027 }
+  ],
   "citta": "Torino",
   "lat": 42.76,
   "lon": 11.11,
@@ -71,6 +76,7 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
     "promemoria": true,
     "meteo": true,
     "radar": true,
+    "timer": true,
     "contoAllaRovescia": false,
     "respiro": true,
     "tiPenso": true,
@@ -97,6 +103,8 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
 | `promemoriaIntervallo` | vero/falso | `true` / `false` · se manca: `true` | promemoria "ogni tot minuti" acceso o spento (non tocca quelli a orario) |
 | `promemoriaTesto` | testo | massimo 40 caratteri · solo caratteri semplici (vedi sotto) | messaggio del promemoria a intervalli. Se manca: `"Bevi un po' d'acqua"` |
 | `promemoriaOrari` | lista di oggetti | da 0 a 10 elementi · può mancare (= nessuno) | promemoria a un orario: vedi "I promemoria a orario" sotto |
+| `dateDallApp` | vero/falso | se manca: `false` | `true` = le date del conto alla rovescia le decide l'app (`dateImportanti`). Vedi "Le date importanti" sotto |
+| `dateImportanti` | lista di oggetti | da 0 a 10 elementi · può mancare (= nessuna) | date del conto alla rovescia |
 | `citta` | testo | massimo 60 caratteri, può essere `""` | città del meteo. `""` = nessuna città |
 | `lat`, `lon` | numeri con 2 decimali | lat −90…90, lon −180…180 · possono mancare | posizione del telefono per il meteo, **arrotondata** (circa 1 km) |
 | `luogo` | testo | massimo 80 caratteri · può mancare | nome del luogo da mostrare (es. `"Grosseto"`), trovato dalle coordinate |
@@ -134,6 +142,32 @@ Regole:
   non sa disegnare emoji e lettere accentate. Le accentate diventano lettera + apostrofo (`è` → `e'`, `à` → `a'`),
   le emoji vengono tolte. Per sicurezza il buddy può comunque saltare i caratteri che non sa disegnare.
 
+### Le date importanti (conto alla rovescia)
+
+Ogni elemento di `dateImportanti`:
+
+| Campo | Tipo | Valori | Significato |
+|---|---|---|---|
+| `id` | testo | 1–16 lettere minuscole e cifre | identificativo, non cambia quando la modifichi |
+| `nome` | testo | massimo 30 caratteri · solo caratteri semplici (stessa regola dei promemoria) | es. `"Compleanno di Ale"` |
+| `giorno` | numero intero | 1–31 (valido per quel mese) | |
+| `mese` | numero intero | 1–12 | 1 = gennaio |
+| `anno` | numero intero | `0` oppure l'anno (es. `2027`) | `0` = **ogni anno**; un anno = **una volta sola** |
+
+Regole:
+
+- **Chi decide le date.** Il buddy ha delle date di partenza scritte nel suo codice.
+  - Se `dateDallApp` **manca o è `false`**: il buddy usa le **sue** date di partenza e ignora `dateImportanti`.
+  - Se `dateDallApp` è `true`: il buddy usa **solo** `dateImportanti`. Se la lista manca, vuol dire **nessuna data**
+    (Firebase non salva le liste vuote, per questo serve `dateDallApp`: senza, "ho cancellato tutto" e "non ho mai mandato niente" sarebbero uguali).
+- Il buddy scrive **sempre** in `stato.dateImportanti` le date che sta usando, anche quelle di partenza.
+  L'app, finché non ha mai mandato date, mostra proprio quelle: alla prima modifica le copia, ci applica la modifica
+  e da lì in poi manda `dateDallApp: true`. Così non si riparte da zero.
+- Le date "una volta" già passate restano in lista (l'app le mostra come "Passata") finché non le elimini: il buddy le ignora.
+- Il 29 febbraio "ogni anno": negli anni non bisestili vale il 28 febbraio.
+- Il giorno conta a mezzanotte (ora locale): "oggi" = 0 giorni, "domani" = 1.
+- Il conto alla rovescia funziona solo se `funzioni.contoAllaRovescia` è `true`.
+
 ### Il luogo del meteo
 
 - **Se ci sono `lat` e `lon` validi** (tutti e due numeri, nei limiti), il buddy usa **quelli** per il meteo.
@@ -157,7 +191,8 @@ Un interruttore acceso/spento per ogni funzione (`true` = accesa, `false` = spen
 | `promemoria` | Promemoria: interruttore generale, sia a intervalli (`promemoriaMinuti`, `promemoriaTesto`) sia a orario (`promemoriaOrari`) |
 | `meteo` | Meteo (la città è in `citta`) |
 | `radar` | Radar aerei: mostra gli aerei che passano sopra casa |
-| `contoAllaRovescia` | Conto alla rovescia |
+| `timer` | Timer da cucina sul buddy |
+| `contoAllaRovescia` | Conto alla rovescia (le date sono in `dateImportanti`) |
 | `respiro` | Respiro |
 | `tiPenso` | Ti penso |
 | `giochi` | Giochi (nell'app ha una voce sua nel menu in basso) |
@@ -206,9 +241,11 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
   "promemoriaOrari": [
     { "id": "m3x9k2ab", "attivo": true, "ora": 8, "minuto": 15, "giorni": [true, true, true, true, true, false, false], "testo": "Prendi la medicina" }
   ],
+  "dateDallApp": true,
+  "dateImportanti": [ { "id": "m3xa1b2c", "nome": "Compleanno di Ale", "giorno": 3, "mese": 12, "anno": 0 } ],
   "citta": "Torino",
   "lat": 42.76, "lon": 11.11, "luogo": "Grosseto", "animazioneMeteo": 2,
-  "funzioni": { "pomodoro": true, "promemoria": true, "meteo": true, "radar": true, "contoAllaRovescia": false, "respiro": true, "tiPenso": true, "giochi": true, "foto": true, "oraDoro": true, "sfida": false, "diario": true, "delusa": true },
+  "funzioni": { "pomodoro": true, "promemoria": true, "meteo": true, "radar": true, "timer": true, "contoAllaRovescia": false, "respiro": true, "tiPenso": true, "giochi": true, "foto": true, "oraDoro": true, "sfida": false, "diario": true, "delusa": true },
   "versione": 1794776259675,
   "ultimoContatto": { ".sv": "timestamp" }
 }
@@ -219,7 +256,9 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
   (nessuna posizione), non scrive `lat`, `lon` e `luogo`.
 - `promemoriaIntervallo`, `promemoriaTesto`, `promemoriaOrari`: l'interruttore, il messaggio e l'elenco dei promemoria a orario **realmente in uso**
   (se il buddy ne tiene meno di 10, scrive solo quelli che usa).
-- `funzioni`: i valori **reali** del buddy, tutte e 13 le chiavi (anche quelle che ha ricevuto mancanti e ha considerato accese).
+- `dateImportanti`: le date **realmente in uso**: quelle dell'app oppure, se `dateDallApp` non è `true`, le date di partenza
+  del buddy (con un `id` qualsiasi di lettere minuscole e cifre, es. `"natale"`). `dateDallApp`: ricopiato dalle impostazioni.
+- `funzioni`: i valori **reali** del buddy, tutte e 14 le chiavi (anche quelle che ha ricevuto mancanti e ha considerato accese).
   Le sotto-funzioni della Fotografia si scrivono con il loro valore così com'è, anche quando `foto` è `false`.
 - `versione`: la versione delle impostazioni applicate (ricopiata). Se il buddy non ha mai ricevuto impostazioni, `0`.
 - `ultimoContatto`: l'ora in millisecondi. **Consiglio:** scrivi letteralmente `{".sv": "timestamp"}`:
@@ -316,7 +355,7 @@ una con `"stile": 9` deve essere rifiutata.
 > Nota: se aggiungi i campi delle proposte 1–3, vanno aggiunti anche alle regole, altrimenti verranno rifiutati.
 >
 > **Importante (novembre 2026):** il file delle regole ora include anche `funzioni`, `partita`, `partitaStato`
-> e i campi del meteo (`lat`, `lon`, `luogo`, `animazioneMeteo`), `radar`, `promemoriaIntervallo`, `promemoriaTesto` e `promemoriaOrari`. Se avevi già pubblicato
+> e i campi del meteo (`lat`, `lon`, `luogo`, `animazioneMeteo`), `radar`, `timer`, `dateDallApp`, `dateImportanti`, `promemoriaIntervallo`, `promemoriaTesto` e `promemoriaOrari`. Se avevi già pubblicato
 > la versione precedente delle regole, ripubblica quella nuova: la vecchia rifiuterebbe ogni scrittura con `funzioni`
 > (per via di `$altro: false`) e l'app resterebbe su "Non inviato".
 

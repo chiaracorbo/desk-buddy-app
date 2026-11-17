@@ -45,7 +45,7 @@
             },
             "funzioni": {
               "$funzione": {
-                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
+                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|timer|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
               }
             },
             "versione": {
@@ -101,6 +101,32 @@
                 }
               }
             },
+            "dateDallApp": {
+              ".validate": "newData.isBoolean()"
+            },
+            "dateImportanti": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['id', 'nome', 'giorno', 'mese', 'anno'])",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
+                },
+                "nome": {
+                  ".validate": "newData.isString() && newData.val().length <= 30"
+                },
+                "giorno": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 31 && newData.val() % 1 == 0"
+                },
+                "mese": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 == 0"
+                },
+                "anno": {
+                  ".validate": "newData.isNumber() && (newData.val() == 0 || (newData.val() >= 1900 && newData.val() <= 2200)) && newData.val() % 1 == 0"
+                },
+                "$altro": {
+                  ".validate": false
+                }
+              }
+            },
             "$altro": {
               ".validate": false
             }
@@ -140,7 +166,7 @@
             },
             "funzioni": {
               "$funzione": {
-                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
+                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|timer|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
               }
             },
             "versione": {
@@ -193,6 +219,32 @@
                 },
                 "testo": {
                   ".validate": "newData.isString() && newData.val().length <= 40"
+                },
+                "$altro": {
+                  ".validate": false
+                }
+              }
+            },
+            "dateDallApp": {
+              ".validate": "newData.isBoolean()"
+            },
+            "dateImportanti": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['id', 'nome', 'giorno', 'mese', 'anno'])",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
+                },
+                "nome": {
+                  ".validate": "newData.isString() && newData.val().length <= 30"
+                },
+                "giorno": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 31 && newData.val() % 1 == 0"
+                },
+                "mese": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 == 0"
+                },
+                "anno": {
+                  ".validate": "newData.isNumber() && (newData.val() == 0 || (newData.val() >= 1900 && newData.val() <= 2200)) && newData.val() % 1 == 0"
                 },
                 "$altro": {
                   ".validate": false

@@ -211,7 +211,7 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
   font-variant-numeric: tabular-nums; min-height: 96px;
 }
 .time-big::-webkit-date-and-time-value { text-align: center; }
-.off .time-big, .off .days, .off#rem-body, .off#rem-int-body, .off#meteo-body { opacity: .45; }
+.off .time-big, .off .days, .off#rem-body, .off#rem-int-body, .off#meteo-body, .off#dt-body { opacity: .45; }
 .meteo-usa { margin: 16px 2px 0; color: var(--text-dim); font-size: var(--fs-s); }
 .meteo-usa b { color: var(--text); }
 .pos-msg { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: var(--fs-s); line-height: 1.45; }
@@ -412,6 +412,11 @@ h2.sez { font-size: var(--fs-l); color: var(--text); margin-top: 28px; text-tran
 .ro-elimina { flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; background: transparent; color: var(--err);
   border: 1px solid color-mix(in srgb, var(--err) 40%, transparent); font-weight: 600; font-size: var(--fs-xs); }
 .ro-vuoto { color: var(--text-dim); font-size: var(--fs-s); margin: 14px 2px; }
+.dt-tra { flex: none; font-size: var(--fs-s); font-weight: 600; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.dt-tra.vicina { color: var(--accent); }
+.dt-quando { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+.dt-quando #dt-box-anno { grid-column: 1 / -1; }
+select.input { -webkit-appearance: none; appearance: none; color: var(--text); }
 dialog.sheet { width: min(var(--maxw), calc(100% - 2 * var(--gutter))); max-height: calc(100dvh - 32px); overflow: auto;
   border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); color: var(--text); padding: 20px var(--gutter) 22px; }
 dialog.sheet::backdrop { background: rgba(0, 0, 0, .65); }
@@ -602,6 +607,55 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
       </form>
     </dialog>
 
+    <!-- CONTO ALLA ROVESCIA -->
+    <section class="screen wrap" id="scr-date" data-screen="date" data-tab="app" hidden>
+      <button class="back" data-go="app">‹ App</button>
+      <h1>Conto alla rovescia</h1>
+      <p class="lead">Il buddy ti dice quanto manca alle tue date importanti.</p>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-label">Conto alla rovescia attivo</div><div class="row-sub" id="dt-summary">Acceso</div></div>
+          <label class="switch"><input type="checkbox" id="dt-on" aria-label="Conto alla rovescia attivo"><span></span></label>
+        </div>
+      </div>
+      <div id="dt-body">
+        <h2 class="sez">Date importanti</h2>
+        <p class="hint" id="dt-dalbuddy" hidden>Queste sono le date che il buddy ha già. Quando ne aggiungi, modifichi o elimini una, da lì in poi le decide l'app.</p>
+        <div class="field-gap"></div>
+        <div class="card ro-card">
+          <div id="dt-list"></div>
+        </div>
+        <div class="field-gap"></div>
+        <button class="btn secondary" type="button" id="dt-add">+ Aggiungi data</button>
+        <p class="hint" id="dt-pieno" hidden>Hai già 10 date: è il massimo. Eliminane una per aggiungerne altre.</p>
+      </div>
+    </section>
+
+    <dialog class="sheet" id="dt-dialog" aria-labelledby="dt-titolo">
+      <form id="dt-form" method="dialog" autocomplete="off">
+        <h2 id="dt-titolo">Nuova data</h2>
+        <label class="field" for="dt-nome">Nome</label>
+        <input class="input" id="dt-nome" placeholder="es. Compleanno di Luca" enterkeyhint="done" autocapitalize="sentences">
+        <div class="conta-riga"><span class="hint">La scritta che compare sul buddy.</span><span class="conta" id="dt-nome-conta">0/30</span></div>
+        <div class="field-gap"></div>
+        <label class="field">Quando si ripete</label>
+        <div class="chips" id="dt-tipo" role="radiogroup" aria-label="Ripetizione">
+          <button type="button" class="chip" role="radio" data-tipo="anno">Ogni anno</button>
+          <button type="button" class="chip" role="radio" data-tipo="una">Una volta</button>
+        </div>
+        <div class="field-gap"></div>
+        <div class="dt-quando">
+          <div><label class="field" for="dt-giorno">Giorno</label><select class="input" id="dt-giorno"></select></div>
+          <div><label class="field" for="dt-mese">Mese</label><select class="input" id="dt-mese"></select></div>
+          <div id="dt-box-anno" hidden><label class="field" for="dt-anno">Anno</label><select class="input" id="dt-anno"></select></div>
+        </div>
+        <p class="error" id="dt-errore" role="alert"></p>
+        <button class="btn" type="submit">Salva</button>
+        <button class="btn secondary" type="button" id="dt-annulla">Annulla</button>
+        <button class="btn danger" type="button" id="dt-elimina">Elimina data</button>
+      </form>
+    </dialog>
+
     <!-- METEO -->
     <section class="screen wrap" id="scr-meteo" data-screen="meteo" data-tab="app" hidden>
       <button class="back" data-go="app">‹ App</button>
@@ -766,7 +820,7 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.6.1";
+const APP_VERSION = "1.7.0";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -784,6 +838,7 @@ const PROMEMORIA_MIN = 5, PROMEMORIA_MAX = 240, PROMEMORIA_PASSO = 5, PROMEMORIA
    La sveglia non ha una chiave: il suo interruttore è sveglia.attiva.
    pagina = schermata che si apre toccando la scheda. sotto = sotto-funzioni (solo Fotografia). */
 const ICONE = {
+  timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4M10 2h4M12 5V2"/>',
   pomodoro: '<circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-3 3-4M9 6.5 12 8l3-1.5"/>',
   promemoria: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   sveglia: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/>',
@@ -801,7 +856,8 @@ const FUNZIONI = [
   { chiave: null, icona: "sveglia", nome: "Sveglia", pagina: "sveglia" },
   { chiave: "meteo", nome: "Meteo", pagina: "meteo" },
   { chiave: "radar", nome: "Radar aerei", desc: "Mostra gli aerei che passano sopra casa" },
-  { chiave: "contoAllaRovescia", nome: "Conto alla rovescia", desc: "Quanto manca a un evento" },
+  { chiave: "timer", nome: "Timer", desc: "Timer da cucina sul buddy" },
+  { chiave: "contoAllaRovescia", nome: "Conto alla rovescia", pagina: "date" },
   { chiave: "respiro", nome: "Respiro", desc: "Qualche respiro lento, guidato" },
   { chiave: "tiPenso", nome: "Ti penso", desc: "Un pensiero che arriva sul buddy" },
   { chiave: "giochi", nome: "Giochi", desc: "Tris, Forza 4 e Dado col buddy", pagina: "giochi" },
@@ -813,7 +869,7 @@ const FUNZIONI = [
   ] }
 ];
 // tutte le chiavi di "funzioni", nell'ordine del protocollo
-const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "radar", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa"];
+const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "radar", "timer", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa"];
 const NOMI_FUNZIONI = {};
 FUNZIONI.forEach(f => { if (f.chiave) NOMI_FUNZIONI[f.chiave] = f.nome; (f.sotto || []).forEach(s => NOMI_FUNZIONI[s.chiave] = s.nome); });
 
@@ -831,6 +887,8 @@ function predefinite() {
     promemoriaIntervallo: true,                // promemoria "ogni tot minuti" acceso
     promemoriaTesto: "Bevi un po' d'acqua",   // messaggio del promemoria a intervalli
     promemoriaOrari: [],                       // promemoria a un orario (massimo 10)
+    dateImportanti: [],                        // date del conto alla rovescia (massimo 10)
+    dateDallApp: false,                        // false = l'app non ha mai mandato date: valgono quelle del buddy
     citta: "",
     lat: null, lon: null, luogo: "",   // posizione del telefono, arrotondata a 2 decimali
     animazioneMeteo: 1,                // 0 niente · 1 leggero · 2 completo
@@ -889,6 +947,8 @@ function pulisci(x) {
     promemoriaIntervallo: typeof x.promemoriaIntervallo === "boolean" ? x.promemoriaIntervallo : true,
     promemoriaTesto: typeof x.promemoriaTesto === "string" && testoPulito(x.promemoriaTesto).trim() ? testoPulito(x.promemoriaTesto).trim() : d.promemoriaTesto,
     promemoriaOrari: pulisciOrari(x.promemoriaOrari),
+    dateImportanti: pulisciDate(x.dateImportanti),
+    dateDallApp: x.dateDallApp === true,
     citta: typeof x.citta === "string" ? x.citta.slice(0, 60) : d.citta,
     lat: posOk ? Math.round(x.lat * 100) / 100 : null,
     lon: posOk ? Math.round(x.lon * 100) / 100 : null,
@@ -989,7 +1049,7 @@ async function invia() {
   S.inviando = true; render();
   const versione = Math.max(Date.now(), (S.imp.versione || 0) + 1);
   const { versione: _v, ...resto } = S.imp;
-  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, funzioni: { ...resto.funzioni }, promemoriaOrari: resto.promemoriaOrari.map(r => ({ ...r, giorni: r.giorni.slice() })), versione };
+  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, funzioni: { ...resto.funzioni }, promemoriaOrari: resto.promemoriaOrari.map(r => ({ ...r, giorni: r.giorni.slice() })), dateImportanti: resto.dateImportanti.map(d => ({ ...d })), versione };
   try {
     await dbPut("impostazioni", dati);
     // se nel frattempo l'utente ha cambiato altro, resta "modificato" e si reinvia
@@ -1356,6 +1416,14 @@ function render() {
   renderMeteoPos();
   $$("#anim-meteo .style-btn").forEach(b => b.setAttribute("aria-checked", +b.dataset.anim === imp.animazioneMeteo));
 
+  // conto alla rovescia
+  const dtOn = imp.funzioni.contoAllaRovescia, prossima = prossimaData();
+  const descDate = prossima ? `${prossima.nome || "Prossima data"}: ${traGiorni(giorniMancanti(prossima))}` : "Aggiungi le tue date";
+  $("#dt-on").checked = dtOn;
+  $("#dt-body").classList.toggle("off", !dtOn);
+  $("#dt-summary").textContent = dtOn ? descDate : "Spento";
+  renderDate();
+
   // pagina App
   const fnAccesa = k => k === "sveglia" ? sv.attiva : imp.funzioni[k];
   FUNZIONI.forEach(f => {
@@ -1372,6 +1440,7 @@ function render() {
   });
   $("#fn-sveglia-desc").textContent = giorniTesto ? `Suona alle ${hhmm} · ${giorniTesto}` : `Alle ${hhmm} · nessun giorno`;
   $("#fn-promemoria-desc").textContent = descPm;
+  $("#fn-contoAllaRovescia-desc").textContent = descDate;
   $("#fn-meteo-desc").textContent = haPosizione(imp) ? `Il tempo a ${imp.luogo || "la tua posizione"}` : imp.citta ? `Il tempo a ${imp.citta}` : "Scegli il luogo";
 
   // impostazioni
@@ -1401,6 +1470,10 @@ function renderInfo() {
     const or = pulisciOrari(st.promemoriaOrari);
     righe.push(["Promemoria a orario", or.length ? `${or.length} (${or.filter(r => r.attivo && !scaduto(r)).length} accesi)` : "nessuno"]);
   }
+  if (st && "promemoriaMinuti" in st) {
+    const dt = pulisciDate(st.dateImportanti);
+    righe.push(["Date importanti", dt.length ? dt.map(d => d.nome).join(", ") : "nessuna"]);
+  }
   if (st && typeof st.citta === "string") righe.push(["Città in uso", st.citta || "—"]);
   if (st && typeof st.lat === "number" && typeof st.lon === "number") righe.push(["Posizione in uso", `${st.luogo ? st.luogo + " · " : ""}${st.lat}, ${st.lon}`]);
   if (st && typeof st.animazioneMeteo === "number") righe.push(["Meteo sugli occhi", (ANIMAZIONI_METEO[st.animazioneMeteo] || {}).nome || String(st.animazioneMeteo)]);
@@ -1416,7 +1489,7 @@ function renderInfo() {
 /* =====================================================================
    NAVIGAZIONE
    ===================================================================== */
-const SCHERMATE = ["occhi", "app", "sveglia", "promemoria", "meteo", "giochi", "impostazioni"];
+const SCHERMATE = ["occhi", "app", "sveglia", "promemoria", "meteo", "date", "giochi", "impostazioni"];
 function vai(tab) {
   // uscendo dalla partita la si chiude, così il buddy torna normale
   if (S.tab === "partita" && tab !== "partita" && G) { chiudiGioco("uscita"); G = null; }
@@ -1487,7 +1560,8 @@ async function simulaApplica(quando) {
   const { versione, ...valori } = S.imp;
   if (S.versioneServer == null) { toast("Prima cambia qualcosa, così c'è una versione da applicare."); return; }
   try {
-    await dbPut("stato", { ...valori, versione: S.versioneServer, ultimoContatto: quando ?? ORA_SERVER });
+    const dateBuddy = valori.dateDallApp ? valori.dateImportanti : (pulisciDate(S.stato && S.stato.dateImportanti).length ? S.stato.dateImportanti : DATE_SIMULATE);
+    await dbPut("stato", { ...valori, dateImportanti: dateBuddy, versione: S.versioneServer, ultimoContatto: quando ?? ORA_SERVER });
     toast("Buddy simulato: stato scritto ✓");
     controllaStato();
   } catch (e) { gestisciErrore(e); render(); toast("Non riesco a scrivere lo stato."); }
@@ -2696,13 +2770,13 @@ function renderPromemoriaOrari() {
 }
 
 /* ---------- scrittura dei testi (etichetta e messaggio) ---------- */
-function contaCaratteri(inp, out) { out.textContent = `${inp.value.length}/${TESTO_MAX}`; out.classList.toggle("pieno", inp.value.length >= TESTO_MAX); }
-function puliziaMentreScrivo(inp, out) {
+function contaCaratteri(inp, out, max = TESTO_MAX) { out.textContent = `${inp.value.length}/${max}`; out.classList.toggle("pieno", inp.value.length >= max); }
+function puliziaMentreScrivo(inp, out, max = TESTO_MAX) {
   const v = inp.value, { testo, avviso } = perBuddy(v);
-  if (testo !== v || testo.length > TESTO_MAX) {
+  if (testo !== v || testo.length > max) {
     // rimetto il cursore nel punto giusto (il pezzo prima del cursore può essersi allungato o accorciato)
     const pos = perBuddy(v.slice(0, inp.selectionStart ?? v.length)).testo.length;
-    inp.value = testo.slice(0, TESTO_MAX);
+    inp.value = testo.slice(0, max);
     const c = Math.min(pos, inp.value.length);
     try { inp.setSelectionRange(c, c); } catch {}
   }
@@ -2710,7 +2784,7 @@ function puliziaMentreScrivo(inp, out) {
     ls.set(LS.avvisoTesto, "1");
     toast("Il buddy non sa disegnare emoji e lettere accentate: le trasformo io (è → e').", 4500);
   }
-  contaCaratteri(inp, out);
+  contaCaratteri(inp, out, max);
 }
 
 /* ---------- finestra per aggiungere / modificare ---------- */
@@ -2813,6 +2887,169 @@ function collegaPromemoria() {
   msg.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); msg.blur(); } });
 }
 
+/* =====================================================================
+   CONTO ALLA ROVESCIA: le date importanti
+   ===================================================================== */
+const DATE_MAX = 10, NOME_DATA_MAX = 30;
+const MESI = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+// date di partenza del buddy finto (il buddy vero scrive le sue nello stato)
+const DATE_SIMULATE = [{ id: "natale", nome: "Natale", giorno: 25, mese: 12, anno: 0 }, { id: "capodanno", nome: "Capodanno", giorno: 1, mese: 1, anno: 0 }];
+
+const bisestile = y => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+const giorniDelMese = (m, y) => m === 2 ? (y == null || bisestile(y) ? 29 : 28) : [4, 6, 9, 11].includes(m) ? 30 : 31;
+
+function pulisciDate(v) {
+  const lista = Array.isArray(v) ? v : (v && typeof v === "object") ? Object.values(v) : [];
+  const visti = new Set(), out = [];
+  for (const d of lista) {
+    if (!d || typeof d !== "object" || out.length >= DATE_MAX) continue;
+    const mese = intIn(d.mese, 1, 12, null), anno = intIn(d.anno, 0, 2200, null);
+    if (mese == null || anno == null || (anno > 0 && anno < 1900)) continue;
+    const giorno = intIn(d.giorno, 1, giorniDelMese(mese, anno || null), null);
+    if (giorno == null) continue;
+    let id = typeof d.id === "string" && /^[a-z0-9]{1,16}$/.test(d.id) ? d.id : nuovoId();
+    if (visti.has(id)) id = nuovoId();
+    visti.add(id);
+    out.push({ id, nome: typeof d.nome === "string" ? testoPulito(d.nome, NOME_DATA_MAX) : "", giorno, mese, anno });
+  }
+  return out;
+}
+
+// le date da mostrare: quelle dell'app, oppure (se l'app non ne ha mai mandate) quelle che il buddy dichiara nello stato
+const dateDalBuddy = () => !S.imp.dateDallApp;
+const dateCorrenti = () => S.imp.dateDallApp ? S.imp.dateImportanti : pulisciDate(S.stato && S.stato.dateImportanti);
+function cambiaDate(fn) {
+  cambia(i => {
+    if (!i.dateDallApp) { i.dateImportanti = dateCorrenti().map(d => ({ ...d })); i.dateDallApp = true; } // parto dalle date del buddy
+    fn(i);
+  });
+}
+
+// quanti giorni mancano (0 = oggi). null = "una volta" già passata
+function giorniMancanti(d, adesso = new Date()) {
+  const oggi = new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate());
+  const quando = y => new Date(y, d.mese - 1, Math.min(d.giorno, giorniDelMese(d.mese, y))); // 29 febbraio → 28 negli anni normali
+  let t;
+  if (d.anno) { t = quando(d.anno); if (t < oggi) return null; }
+  else { t = quando(oggi.getFullYear()); if (t < oggi) t = quando(oggi.getFullYear() + 1); }
+  return Math.round((t - oggi) / 86400000);
+}
+const passata = d => giorniMancanti(d) == null;
+function dateOrdinate(lista) {
+  return lista.map(d => [giorniMancanti(d), d])
+    .sort((a, b) => (a[0] == null) - (b[0] == null) || (a[0] ?? 0) - (b[0] ?? 0) || (b[1].anno - a[1].anno))
+    .map(x => x[1]);
+}
+const traGiorni = n => n === 0 ? "oggi" : n === 1 ? "domani" : `tra ${n} giorni`;
+const descriviData = d => `${d.giorno} ${MESI[d.mese - 1]}${d.anno ? " " + d.anno : ""} · ${d.anno ? "una volta" : "ogni anno"}`;
+
+function prossimaData() {
+  const l = dateOrdinate(dateCorrenti()).filter(d => !passata(d));
+  return l[0] || null;
+}
+
+/* ---------- elenco ---------- */
+function renderDate() {
+  const lista = dateOrdinate(dateCorrenti());
+  $("#dt-list").innerHTML = lista.length ? lista.map(d => {
+    const n = giorniMancanti(d);
+    return `<div class="ro-row${n == null ? " scaduto" : ""}" data-dt="${d.id}">
+      <button class="ro-main" data-dt-apri="${d.id}" aria-label="Modifica la data">
+        <span class="ro-txt"><span class="ro-testo"></span><span class="ro-rip">${n == null ? "Passata · " : ""}${descriviData(d)}</span></span>
+      </button>
+      ${n == null ? `<button class="ro-elimina" data-dt-elimina="${d.id}" aria-label="Elimina data passata">Elimina</button>`
+                  : `<span class="dt-tra${n <= 7 ? " vicina" : ""}">${traGiorni(n)}</span>`}
+    </div>`;
+  }).join("") : `<p class="ro-vuoto">Nessuna data. Aggiungi un compleanno, un anniversario o un viaggio.</p>`;
+  lista.forEach(d => { $(`[data-dt="${d.id}"] .ro-testo`).textContent = d.nome || "Senza nome"; });
+  $("#dt-dalbuddy").hidden = !(dateDalBuddy() && lista.length);
+  const pieno = lista.length >= DATE_MAX;
+  $("#dt-add").disabled = pieno;
+  $("#dt-pieno").hidden = !pieno;
+}
+
+/* ---------- finestra per aggiungere / modificare ---------- */
+let dtModifica = null, dtTipo = "anno";
+function riempiGiorniData() {
+  const mese = +$("#dt-mese").value, anno = dtTipo === "una" ? +$("#dt-anno").value : null;
+  const max = giorniDelMese(mese, anno), sel = $("#dt-giorno"), prima = +sel.value || 1;
+  sel.innerHTML = Array.from({ length: max }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
+  sel.value = String(Math.min(prima, max));
+}
+function renderTipoData() {
+  $$("#dt-tipo .chip").forEach(c => c.setAttribute("aria-checked", c.dataset.tipo === dtTipo));
+  $("#dt-box-anno").hidden = dtTipo !== "una";
+  riempiGiorniData();
+}
+function apriData(id) {
+  const lista = dateCorrenti(), d = id ? lista.find(x => x.id === id) : null;
+  if (!d && lista.length >= DATE_MAX) { toast(`Puoi avere al massimo ${DATE_MAX} date.`); return; }
+  dtModifica = d ? d.id : null;
+  const oggi = new Date();
+  const b = d || { nome: "", giorno: oggi.getDate(), mese: oggi.getMonth() + 1, anno: 0 };
+  dtTipo = b.anno ? "una" : "anno";
+  const primoAnno = Math.min(oggi.getFullYear(), b.anno || oggi.getFullYear());
+  $("#dt-anno").innerHTML = Array.from({ length: oggi.getFullYear() + 30 - primoAnno + 1 }, (_, i) => `<option>${primoAnno + i}</option>`).join("");
+  $("#dt-anno").value = String(b.anno || oggi.getFullYear());
+  $("#dt-mese").value = String(b.mese);
+  $("#dt-giorno").innerHTML = `<option value="${b.giorno}">${b.giorno}</option>`; $("#dt-giorno").value = String(b.giorno);
+  renderTipoData();
+  $("#dt-giorno").value = String(b.giorno);
+  $("#dt-nome").value = b.nome;
+  contaCaratteri($("#dt-nome"), $("#dt-nome-conta"), NOME_DATA_MAX);
+  $("#dt-titolo").textContent = d ? "Modifica data" : "Nuova data";
+  $("#dt-elimina").hidden = !d;
+  $("#dt-errore").textContent = "";
+  const dlg = $("#dt-dialog");
+  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+}
+function chiudiData() {
+  const dlg = $("#dt-dialog");
+  if (dlg.close) dlg.close(); else dlg.removeAttribute("open");
+  dtModifica = null;
+}
+function salvaData() {
+  const nome = testoPulito($("#dt-nome").value, NOME_DATA_MAX).trim();
+  if (!nome) { $("#dt-errore").textContent = "Scrivi il nome della data."; return; }
+  const d = { id: dtModifica || nuovoId(), nome, giorno: +$("#dt-giorno").value, mese: +$("#dt-mese").value, anno: dtTipo === "una" ? +$("#dt-anno").value : 0 };
+  if (d.giorno > giorniDelMese(d.mese, d.anno || null)) { $("#dt-errore").textContent = "Questo giorno non esiste."; return; }
+  if (d.anno && passata(d)) { $("#dt-errore").textContent = "Questa data è già passata."; return; }
+  const nuova = !dtModifica;
+  cambiaDate(i => {
+    const k = i.dateImportanti.findIndex(x => x.id === d.id);
+    if (k >= 0) i.dateImportanti[k] = d; else if (i.dateImportanti.length < DATE_MAX) i.dateImportanti.push(d);
+  });
+  toast(nuova ? "Data aggiunta" : "Data aggiornata");
+  chiudiData();
+}
+function eliminaData(id) {
+  const d = dateCorrenti().find(x => x.id === id); if (!d) return false;
+  if (!confirm(`Vuoi eliminare "${d.nome || "questa data"}"?`)) return false;
+  cambiaDate(i => { i.dateImportanti = i.dateImportanti.filter(x => x.id !== id); });
+  toast("Data eliminata");
+  return true;
+}
+
+function costruisciDate() {
+  $("#dt-mese").innerHTML = MESI.map((m, i) => `<option value="${i + 1}">${m}</option>`).join("");
+}
+function collegaDate() {
+  $("#dt-on").addEventListener("change", e => cambia(i => i.funzioni.contoAllaRovescia = e.target.checked));
+  $("#dt-add").addEventListener("click", () => apriData(null));
+  $("#dt-list").addEventListener("click", e => {
+    const a = e.target.closest("[data-dt-apri]"); if (a) { apriData(a.dataset.dtApri); return; }
+    const x = e.target.closest("[data-dt-elimina]"); if (x) eliminaData(x.dataset.dtElimina);
+  });
+  $("#dt-tipo").addEventListener("click", e => { const c = e.target.closest("[data-tipo]"); if (c) { dtTipo = c.dataset.tipo; renderTipoData(); } });
+  $("#dt-mese").addEventListener("change", riempiGiorniData);
+  $("#dt-anno").addEventListener("change", riempiGiorniData);
+  $("#dt-nome").addEventListener("input", () => puliziaMentreScrivo($("#dt-nome"), $("#dt-nome-conta"), NOME_DATA_MAX));
+  $("#dt-form").addEventListener("submit", e => { e.preventDefault(); salvaData(); });
+  $("#dt-annulla").addEventListener("click", chiudiData);
+  $("#dt-elimina").addEventListener("click", () => { if (dtModifica && eliminaData(dtModifica)) chiudiData(); });
+  $("#dt-dialog").addEventListener("cancel", () => { dtModifica = null; });
+}
+
 /* ---------- installazione sulla schermata Home ---------- */
 let promptInstalla = null;
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptInstalla = e; });
@@ -2841,10 +3078,12 @@ costruisci();
 costruisciGiochi();
 costruisciMeteo();
 costruisciPromemoria();
+costruisciDate();
 collegaEventi();
 collegaGiochi();
 collegaMeteo();
 collegaPromemoria();
+collegaDate();
 leggiHash();
 avvia();
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
