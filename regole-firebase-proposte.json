@@ -45,7 +45,7 @@
             },
             "funzioni": {
               "$funzione": {
-                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|timer|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
+                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|timer|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa|acqua|iss|droni)$/) && newData.isBoolean()"
               }
             },
             "versione": {
@@ -127,6 +127,49 @@
                 }
               }
             },
+            "acquaObiettivo": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20 && newData.val() % 1 == 0"
+            },
+            "postiVolo": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-5]$/) && newData.hasChildren(['id', 'nome', 'lat', 'lon'])",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
+                },
+                "nome": {
+                  ".validate": "newData.isString() && newData.val().length <= 24"
+                },
+                "lat": {
+                  ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+                },
+                "lon": {
+                  ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+                },
+                "$altro": {
+                  ".validate": false
+                }
+              }
+            },
+            "droni": {
+              "$i": {
+                ".validate": "$i.matches(/^[01]$/) && newData.hasChildren(['id', 'nome', 'verde', 'giallo'])",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
+                },
+                "nome": {
+                  ".validate": "newData.isString() && newData.val().length <= 8"
+                },
+                "verde": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20"
+                },
+                "giallo": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20 && newData.val() > newData.parent().child('verde').val()"
+                },
+                "$altro": {
+                  ".validate": false
+                }
+              }
+            },
             "$altro": {
               ".validate": false
             }
@@ -166,7 +209,7 @@
             },
             "funzioni": {
               "$funzione": {
-                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|timer|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa)$/) && newData.isBoolean()"
+                ".validate": "$funzione.matches(/^(pomodoro|promemoria|meteo|radar|timer|contoAllaRovescia|respiro|tiPenso|giochi|foto|oraDoro|sfida|diario|delusa|acqua|iss|droni)$/) && newData.isBoolean()"
               }
             },
             "versione": {
@@ -250,6 +293,52 @@
                   ".validate": false
                 }
               }
+            },
+            "acquaObiettivo": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20 && newData.val() % 1 == 0"
+            },
+            "postiVolo": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-5]$/) && newData.hasChildren(['id', 'nome', 'lat', 'lon'])",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
+                },
+                "nome": {
+                  ".validate": "newData.isString() && newData.val().length <= 24"
+                },
+                "lat": {
+                  ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+                },
+                "lon": {
+                  ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+                },
+                "$altro": {
+                  ".validate": false
+                }
+              }
+            },
+            "droni": {
+              "$i": {
+                ".validate": "$i.matches(/^[01]$/) && newData.hasChildren(['id', 'nome', 'verde', 'giallo'])",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
+                },
+                "nome": {
+                  ".validate": "newData.isString() && newData.val().length <= 8"
+                },
+                "verde": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20"
+                },
+                "giallo": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20 && newData.val() > newData.parent().child('verde').val()"
+                },
+                "$altro": {
+                  ".validate": false
+                }
+              }
+            },
+            "acquaOggi": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000 && newData.val() % 1 == 0"
             },
             "$altro": {
               ".validate": false

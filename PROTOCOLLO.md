@@ -55,6 +55,15 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
   "promemoriaMinuti": 45,
   "promemoriaIntervallo": true,
   "promemoriaTesto": "Bevi un po' d'acqua",
+  "acquaObiettivo": 8,
+  "postiVolo": [
+    { "id": "spiaggia", "nome": "Spiaggia", "lat": 42.76, "lon": 10.88 },
+    { "id": "collina", "nome": "Collina", "lat": 42.81, "lon": 11.15 }
+  ],
+  "droni": [
+    { "id": "avata360", "nome": "AVATA", "verde": 6, "giallo": 8 },
+    { "id": "air3s", "nome": "AIR 3S", "verde": 7, "giallo": 9.5 }
+  ],
   "promemoriaOrari": [
     { "id": "m3x9k2ab", "attivo": true, "ora": 8, "minuto": 15, "data": null,
       "giorni": [true, true, true, true, true, false, false], "testo": "Prendi la medicina" },
@@ -85,7 +94,10 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
     "oraDoro": true,
     "sfida": false,
     "diario": true,
-    "delusa": true
+    "delusa": true,
+    "acqua": true,
+    "iss": true,
+    "droni": true
   },
   "versione": 1794776259675
 }
@@ -100,7 +112,10 @@ L'app le scrive **sempre tutte insieme** (richiesta `PUT`, che sostituisce tutto
 | `sveglia.minuto` | numero intero | 0–59 | minuti |
 | `sveglia.giorni` | lista di 7 vero/falso | posizione 0 = **lunedì** … 6 = **domenica** | giorni in cui suona. Tutti `false` = non suona mai |
 | `promemoriaMinuti` | numero intero | 5–240 (l'app usa passi di 5) | ogni quanti minuti fare il promemoria. Resta salvato anche quando il promemoria è spento. Vedi nota sotto per lo `0` |
-| `promemoriaIntervallo` | vero/falso | `true` / `false` · se manca: `true` | promemoria "ogni tot minuti" acceso o spento (non tocca quelli a orario) |
+| `promemoriaIntervallo` | vero/falso | `true` / `false` · se manca: `true` | promemoria **«bevi»** ogni tot minuti acceso o spento. Nell'app sta nella scheda **Acqua** |
+| `acquaObiettivo` | numero intero | 1–20 · se manca: `8` | bicchieri d'acqua al giorno da raggiungere |
+| `postiVolo` | lista di oggetti | da 0 a 6 · può mancare (= nessuno) | Meteo droni: i tuoi posti. Vedi "Meteo droni" sotto |
+| `droni` | lista di oggetti | da 1 a 2 | Meteo droni: i tuoi droni con le soglie di vento |
 | `promemoriaTesto` | testo | massimo 40 caratteri · solo caratteri semplici (vedi sotto) | messaggio del promemoria a intervalli. Se manca: `"Bevi un po' d'acqua"` |
 | `promemoriaOrari` | lista di oggetti | da 0 a 10 elementi · può mancare (= nessuno) | promemoria a un orario: vedi "I promemoria a orario" sotto |
 | `dateDallApp` | vero/falso | se manca: `false` | `true` = le date del conto alla rovescia le decide l'app (`dateImportanti`). Vedi "Le date importanti" sotto |
@@ -128,9 +143,9 @@ Ogni elemento di `promemoriaOrari`:
 Regole:
 
 - Un promemoria a orario suona solo se `funzioni.promemoria` è `true` **e** il suo `attivo` è `true`.
-- Il promemoria a intervalli suona solo se `funzioni.promemoria` è `true` **e** `promemoriaIntervallo` è `true`.
-- L'interruttore generale `funzioni.promemoria` spegne tutto; `promemoriaIntervallo` spegne solo quello "ogni tot minuti",
-  così si possono tenere solo i promemoria a orario.
+- **Dalla tappa 16** il promemoria a intervalli è il promemoria **«bevi»** e nell'app sta nella scheda **Acqua**:
+  suona se `promemoriaIntervallo` è `true`, `funzioni.acqua` non è `false` **e** `promemoriaMinuti` è almeno 5.
+  `funzioni.promemoria` vale **solo** per i promemoria a orario.
 - **Attenzione a `null` in Firebase**: Firebase non salva i valori `null`, quindi quando la data non c'è
   il buddy **non trova proprio** il campo `data`. Campo mancante = `null` = ripetizione nei giorni.
 - Anche la lista, se è vuota, in Firebase **non c'è**: campo mancante = nessun promemoria a orario.
@@ -138,9 +153,11 @@ Regole:
 - I promemoria "una volta sola" già passati restano nella lista (l'app li mostra in grigio come "Scaduto")
   finché non li elimini: il buddy deve semplicemente ignorarli. Il buddy **non** modifica le impostazioni.
 - Data e ora sono quelle **locali** (l'ora di casa), non UTC.
-- **Testi** (`promemoriaTesto` e `testo`): l'app scrive solo caratteri ASCII semplici (codici 32–126), perché il buddy
-  non sa disegnare emoji e lettere accentate. Le accentate diventano lettera + apostrofo (`è` → `e'`, `à` → `a'`),
-  le emoji vengono tolte. Per sicurezza il buddy può comunque saltare i caratteri che non sa disegnare.
+- **Testi** (tutti i testi scritti dall'utente: `promemoriaTesto`, `testo`, i `nome` delle date, dei posti e dei droni):
+  dalla tappa 16 l'app scrive i caratteri ASCII semplici (codici 32–126) **più** `à è é ì ò ù ç ñ °`, che il buddy sa disegnare.
+  Le **emoji vengono tolte**; le altre lettere con segni (`È`, `á`, `ü`…) diventano la lettera semplice (`E`, `a`, `u`).
+  Il testo è in UTF-8. Per sicurezza il buddy può comunque saltare i caratteri che non sa disegnare.
+  (Le app vecchie scrivevano `e'` al posto di `è`: quei testi restano così finché non li riscrivi.)
 
 ### Le date importanti (conto alla rovescia)
 
@@ -168,6 +185,58 @@ Regole:
 - Il giorno conta a mezzanotte (ora locale): "oggi" = 0 giorni, "domani" = 1.
 - Il conto alla rovescia funziona solo se `funzioni.contoAllaRovescia` è `true`.
 
+### Acqua
+
+- `acquaObiettivo`: quanti bicchieri al giorno (1–20, se manca `8`).
+- Il conteggio dei bicchieri lo tiene il **buddy**: lo scrive nello stato come `acquaOggi` (numero intero, da 0 in su,
+  si azzera a mezzanotte). L'app lo mostra come "5 di 8 oggi" con un bicchiere che si riempie.
+- Interruttore della funzione: `funzioni.acqua` (il buddy lo legge dalla tappa 16.2; se manca è acceso).
+- Il promemoria «bevi» usa `promemoriaIntervallo`, `promemoriaMinuti` e `promemoriaTesto` (vedi sopra).
+
+### Stazione Spaziale (ISS)
+
+- Interruttore: `funzioni.iss` (dalla tappa 16.2; se manca è acceso). Avvisa quando la Stazione Spaziale passa sopra casa.
+- Usa la **posizione del meteo**: `lat`/`lon` se ci sono, altrimenti `citta` (stessa regola del meteo).
+
+### Meteo droni
+
+Interruttore: `funzioni.droni`. In alto nell'app c'è sempre l'avviso "Non sostituisce D-Flight e l'app del drone".
+
+Ogni elemento di `postiVolo` (massimo 6, **in ordine**: è l'ordine delle pagine sul buddy):
+
+| Campo | Tipo | Valori | Significato |
+|---|---|---|---|
+| `id` | testo | 1–16 lettere minuscole e cifre, unico | ricavato dal nome quando aggiungi il posto (es. `"spiaggia"`, `"grosseto2"`). Non cambia se lo rinomini |
+| `nome` | testo | massimo 24 caratteri | il nome da mostrare |
+| `lat`, `lon` | numeri con 2 decimali | lat −90…90, lon −180…180 | posizione arrotondata (circa 1 km) |
+
+Ogni elemento di `droni` (da 1 a 2):
+
+| Campo | Tipo | Valori | Significato |
+|---|---|---|---|
+| `id` | testo | 1–16 lettere minuscole e cifre, unico | es. `"avata360"` |
+| `nome` | testo | massimo 8 caratteri | la scritta nel cerchio |
+| `verde` | numero | 1–20 m/s, minore di `giallo` | fino a questo vento si vola |
+| `giallo` | numero | 1–20 m/s, maggiore di `verde` | fino a questo vento è al limite; sopra non si vola |
+
+Valori di partenza (anche per il pulsante **Ripristina**): `{ "avata360", "AVATA", 6, 8 }` e `{ "air3s", "AIR 3S", 7, 9.5 }`.
+
+**Il semaforo** (stesse regole sul buddy e nel dettaglio ora per ora dell'app), con i dati orari di Open-Meteo
+(`wind_speed_120m`, `wind_gusts_10m`, `precipitation_probability`, `precipitation`, `temperature_2m`, `visibility`,
+`wind_speed_unit=ms`, `timezone=Europe/Rome`):
+
+- vento di riferimento = il **più alto** tra `wind_speed_120m` e `wind_gusts_10m`;
+- **ROSSO** se vento > `giallo`, oppure pioggia > 0,2 mm, oppure probabilità di pioggia ≥ 60%, oppure visibilità < 1000 m,
+  oppure temperatura < −10 °C o > 40 °C;
+- **GIALLO** se non è rosso e: vento > `verde`, oppure probabilità di pioggia tra 30% e 59%, oppure temperatura < 5 °C;
+- **VERDE** altrimenti.
+- Un valore che manca (es. `visibility` a `null`) non fa scattare la sua regola.
+
+Esempio di richiesta: `https://api.open-meteo.com/v1/forecast?latitude=42.76&longitude=10.88&hourly=wind_speed_120m,wind_gusts_10m,precipitation_probability,precipitation,temperature_2m,visibility&wind_speed_unit=ms&timezone=Europe%2FRome&forecast_days=4`
+
+Liste in Firebase: l'app e il buddy accettano `postiVolo` e `droni` sia come lista `[...]` sia come oggetto `{"0": …, "1": …}`.
+Una lista vuota in Firebase **non c'è**: `postiVolo` mancante = nessun posto. `droni` c'è sempre (almeno uno).
+
 ### Il luogo del meteo
 
 - **Se ci sono `lat` e `lon` validi** (tutti e due numeri, nei limiti), il buddy usa **quelli** per il meteo.
@@ -188,7 +257,7 @@ Un interruttore acceso/spento per ogni funzione (`true` = accesa, `false` = spen
 | Chiave | Funzione |
 |---|---|
 | `pomodoro` | Pomodoro |
-| `promemoria` | Promemoria: interruttore generale, sia a intervalli (`promemoriaMinuti`, `promemoriaTesto`) sia a orario (`promemoriaOrari`) |
+| `promemoria` | Promemoria a orario (`promemoriaOrari`) |
 | `meteo` | Meteo (la città è in `citta`) |
 | `radar` | Radar aerei: mostra gli aerei che passano sopra casa |
 | `timer` | Timer da cucina sul buddy |
@@ -201,6 +270,12 @@ Un interruttore acceso/spento per ogni funzione (`true` = accesa, `false` = spen
 | `sfida` | Fotografia → Sfida del giorno |
 | `diario` | Fotografia → Diario delle uscite |
 | `delusa` | Fotografia → Faccia delusa dopo tanti giorni senza foto |
+| `acqua` | Acqua: bicchieri e promemoria «bevi» (dalla tappa 16.2) |
+| `iss` | Stazione Spaziale: avvisa quando passa sopra casa (dalla tappa 16.2) |
+| `droni` | Meteo droni |
+
+Nella pagina App le schede sono nello stesso ordine delle pagine del buddy: Meteo, Meteo droni, Conto alla rovescia, Acqua,
+Timer, Fotografia, ISS, Radar, Giochi, poi Pomodoro, Promemoria, Sveglia, Respiro, Ti penso.
 
 Regole:
 
@@ -208,8 +283,8 @@ Regole:
 - **Fotografia è un gruppo**: una sotto-funzione (`oraDoro`, `sfida`, `diario`, `delusa`) è attiva solo se
   sono `true` **sia** lei **sia** `foto`. Quando `foto` è `false` l'app conserva i valori delle sotto-funzioni
   (così riaccendendo `foto` tornano come prima), ma il buddy deve considerarle tutte spente.
-- **Promemoria**: l'interruttore generale è `funzioni.promemoria`. Il promemoria a intervalli suona solo se `funzioni.promemoria`
-  è `true`, `promemoriaIntervallo` non è `false` **e** `promemoriaMinuti` è almeno 5. Per compatibilità con il vecchio protocollo, `promemoriaMinuti: 0` vuol dire
+- **Promemoria**: `funzioni.promemoria` vale per i promemoria a orario. Il promemoria a intervalli («bevi») suona solo se
+  `funzioni.acqua` non è `false`, `promemoriaIntervallo` non è `false` **e** `promemoriaMinuti` è almeno 5. Per compatibilità con il vecchio protocollo, `promemoriaMinuti: 0` vuol dire
   ancora "spento" (l'app, se lo trova, lo mostra come interruttore spento e propone 30 minuti).
 - **Buddy e app vecchi**: se `funzioni` manca del tutto, o manca una sua voce, quella funzione va considerata **accesa**.
 - Una funzione spenta resta visibile (in grigio) nella pagina App, così si può riaccendere in qualsiasi momento.
@@ -238,6 +313,10 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
   "promemoriaMinuti": 45,
   "promemoriaIntervallo": true,
   "promemoriaTesto": "Bevi un po' d'acqua",
+  "acquaObiettivo": 8,
+  "acquaOggi": 5,
+  "postiVolo": [ { "id": "spiaggia", "nome": "Spiaggia", "lat": 42.76, "lon": 10.88 } ],
+  "droni": [ { "id": "avata360", "nome": "AVATA", "verde": 6, "giallo": 8 }, { "id": "air3s", "nome": "AIR 3S", "verde": 7, "giallo": 9.5 } ],
   "promemoriaOrari": [
     { "id": "m3x9k2ab", "attivo": true, "ora": 8, "minuto": 15, "giorni": [true, true, true, true, true, false, false], "testo": "Prendi la medicina" }
   ],
@@ -245,7 +324,7 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
   "dateImportanti": [ { "id": "m3xa1b2c", "nome": "Compleanno di Ale", "giorno": 3, "mese": 12, "anno": 0 } ],
   "citta": "Torino",
   "lat": 42.76, "lon": 11.11, "luogo": "Grosseto", "animazioneMeteo": 2,
-  "funzioni": { "pomodoro": true, "promemoria": true, "meteo": true, "radar": true, "timer": true, "contoAllaRovescia": false, "respiro": true, "tiPenso": true, "giochi": true, "foto": true, "oraDoro": true, "sfida": false, "diario": true, "delusa": true },
+  "funzioni": { "pomodoro": true, "promemoria": true, "meteo": true, "radar": true, "timer": true, "contoAllaRovescia": false, "respiro": true, "tiPenso": true, "giochi": true, "foto": true, "oraDoro": true, "sfida": false, "diario": true, "delusa": true, "acqua": true, "iss": true, "droni": true },
   "versione": 1794776259675,
   "ultimoContatto": { ".sv": "timestamp" }
 }
@@ -258,7 +337,11 @@ Il buddy scrive qui quello che **sta usando davvero**, la `versione` che ha appl
   (se il buddy ne tiene meno di 10, scrive solo quelli che usa).
 - `dateImportanti`: le date **realmente in uso**: quelle dell'app oppure, se `dateDallApp` non è `true`, le date di partenza
   del buddy (con un `id` qualsiasi di lettere minuscole e cifre, es. `"natale"`). `dateDallApp`: ricopiato dalle impostazioni.
-- `funzioni`: i valori **reali** del buddy, tutte e 14 le chiavi (anche quelle che ha ricevuto mancanti e ha considerato accese).
+- `acquaObiettivo`: l'obiettivo in uso. `acquaOggi`: i bicchieri bevuti oggi, contati dal buddy (solo nello stato).
+- `postiVolo`, `droni`: quelli **realmente in uso**. `postiVolo` lo scrive **solo se c'è almeno un posto**
+  (Firebase non salva le liste vuote); `droni` lo scrive **sempre**. Come le altre impostazioni, finché il buddy
+  non li ha confermati l'app mostra "In attesa".
+- `funzioni`: i valori **reali** del buddy, tutte e 17 le chiavi (anche quelle che ha ricevuto mancanti e ha considerato accese).
   Le sotto-funzioni della Fotografia si scrivono con il loro valore così com'è, anche quando `foto` è `false`.
 - `versione`: la versione delle impostazioni applicate (ricopiata). Se il buddy non ha mai ricevuto impostazioni, `0`.
 - `ultimoContatto`: l'ora in millisecondi. **Consiglio:** scrivi letteralmente `{".sv": "timestamp"}`:
@@ -355,7 +438,8 @@ una con `"stile": 9` deve essere rifiutata.
 > Nota: se aggiungi i campi delle proposte 1–3, vanno aggiunti anche alle regole, altrimenti verranno rifiutati.
 >
 > **Importante (novembre 2026):** il file delle regole ora include anche `funzioni`, `partita`, `partitaStato`
-> e i campi del meteo (`lat`, `lon`, `luogo`, `animazioneMeteo`), `radar`, `timer`, `dateDallApp`, `dateImportanti`, `promemoriaIntervallo`, `promemoriaTesto` e `promemoriaOrari`. Se avevi già pubblicato
+> e i campi del meteo (`lat`, `lon`, `luogo`, `animazioneMeteo`), `radar`, `timer`, `dateDallApp`, `dateImportanti`, `promemoriaIntervallo`, `promemoriaTesto`, `promemoriaOrari` e, dalla tappa 16, `acqua`, `iss`, `droni`,
+> `acquaObiettivo`, `acquaOggi`, `postiVolo` e `droni`. Se avevi già pubblicato
 > la versione precedente delle regole, ripubblica quella nuova: la vecchia rifiuterebbe ogni scrittura con `funzioni`
 > (per via di `$altro: false`) e l'app resterebbe su "Non inviato".
 

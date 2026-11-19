@@ -19,7 +19,7 @@ posizione del telefono o città, e come si vede sugli occhi).
    - **Applicato ✓** → il buddy la sta usando.
 4. Il menu in basso ha quattro voci:
    - **Occhi**: stile e colore;
-   - **App**: le funzioni del buddy, ognuna con il suo interruttore. Toccando Sveglia, Promemoria, Meteo o Conto alla rovescia (le date importanti)
+   - **App**: le funzioni del buddy, ognuna con il suo interruttore. Toccando Sveglia, Promemoria, Meteo, Meteo droni, Acqua o Conto alla rovescia (le date importanti)
      si aprono le loro impostazioni (Promemoria: ogni tot minuti con un messaggio, e fino a 10 promemoria a un orario).
      Fotografia ha un interruttore generale e quattro sotto-interruttori;
    - **Giochi**: Tris, Forza 4, Dado, Dama e Battaglia navale da fare col buddy (si apre anche dalla scheda Giochi nella pagina App).

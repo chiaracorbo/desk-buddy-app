@@ -211,7 +211,7 @@ p.lead { color: var(--text-dim); margin: 0 0 8px; font-size: var(--fs-s); }
   font-variant-numeric: tabular-nums; min-height: 96px;
 }
 .time-big::-webkit-date-and-time-value { text-align: center; }
-.off .time-big, .off .days, .off#rem-body, .off#rem-int-body, .off#meteo-body, .off#dt-body { opacity: .45; }
+.off .time-big, .off .days, .off#rem-body, .off#rem-int-body, .off#meteo-body, .off#dt-body, .off#acqua-body, .off#vl-body { opacity: .45; }
 .meteo-usa { margin: 16px 2px 0; color: var(--text-dim); font-size: var(--fs-s); }
 .meteo-usa b { color: var(--text); }
 .pos-msg { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: var(--fs-s); line-height: 1.45; }
@@ -412,6 +412,45 @@ h2.sez { font-size: var(--fs-l); color: var(--text); margin-top: 28px; text-tran
 .ro-elimina { flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; background: transparent; color: var(--err);
   border: 1px solid color-mix(in srgb, var(--err) 40%, transparent); font-weight: 600; font-size: var(--fs-xs); }
 .ro-vuoto { color: var(--text-dim); font-size: var(--fs-s); margin: 14px 2px; }
+/* ---------- acqua ---------- */
+.acqua-oggi { display: flex; align-items: center; gap: 18px; }
+.bicchiere { position: relative; width: 46px; height: 62px; flex: none; border: 3px solid var(--text-dim); border-top: 0;
+  border-radius: 0 0 12px 12px; overflow: hidden; }
+.bicchiere-acqua { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: #4fb4ff; transition: height .4s; }
+.acqua-txt { flex: 1; min-width: 0; }
+.acqua-num { font-size: var(--fs-l); font-weight: 700; }
+.barra { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin: 8px 0 6px; }
+.barra span { display: block; height: 100%; width: 0; background: #4fb4ff; border-radius: 99px; transition: width .4s; }
+.fn-nota { color: var(--text-faint); font-size: 12px; white-space: normal; }
+
+/* ---------- meteo droni ---------- */
+.avviso-droni { margin: 4px 0 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: var(--fs-s); font-weight: 600;
+  background: color-mix(in srgb, var(--warn) 14%, transparent); border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent); color: var(--text); }
+.avviso-droni b { color: var(--warn); }
+.pv-maniglia { flex: none; width: 36px; height: 44px; display: grid; place-items: center; color: var(--text-faint); touch-action: none; cursor: grab; margin-left: -6px; }
+.pv-maniglia svg, .pv-modifica svg { width: 20px; height: 20px; }
+.pv-modifica { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--surface-2); color: var(--text-dim); display: grid; place-items: center; }
+.pv-num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 700; color: var(--text-dim); }
+.pv-row.trascino { background: var(--surface-2); border-radius: var(--radius-sm); box-shadow: 0 6px 20px rgba(0,0,0,.5); position: relative; z-index: 2; }
+.dr-cerchio { flex: none; width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--accent); display: grid; place-items: center;
+  font-size: 11px; font-weight: 800; letter-spacing: .02em; text-align: center; line-height: 1.1; padding: 4px; overflow: hidden; }
+.dr-soglie { display: flex; flex-wrap: wrap; gap: 4px; }
+.luce { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; color: #0b0b0d; white-space: nowrap; }
+.luce.verde { background: var(--ok); } .luce.giallo { background: var(--warn); } .luce.rosso { background: var(--err); }
+.dr-soglie-campi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cerca-riga { display: flex; gap: 8px; }
+.cerca-riga .input { flex: 1; min-width: 0; }
+.btn.cerca-btn { width: auto; flex: none; }
+.cerca-lista { display: flex; flex-direction: column; gap: 6px; margin: 10px 0 14px; }
+.cerca-ris { text-align: left; border: 1px solid var(--line); background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text); font: inherit; }
+.cerca-ris b { display: block; } .cerca-ris span { font-size: var(--fs-xs); color: var(--text-dim); }
+.vl-legenda { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-xs); color: var(--text-dim); margin-bottom: 8px; }
+.vl-legenda b { color: var(--text); }
+h3.vl-giorno { font-size: var(--fs-s); color: var(--text-dim); margin: 20px 2px 6px; text-transform: capitalize; }
+.vl-ora { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 8px 2px; border-top: 1px solid var(--line); }
+.vl-h { font-weight: 700; font-variant-numeric: tabular-nums; }
+.vl-dati { font-size: 12px; color: var(--text-dim); line-height: 1.35; }
+.vl-luci { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
 .dt-tra { flex: none; font-size: var(--fs-s); font-weight: 600; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .dt-tra.vicina { color: var(--accent); }
 .dt-quando { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
@@ -532,7 +571,7 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
     <section class="screen wrap" id="scr-promemoria" data-screen="promemoria" data-tab="app" hidden>
       <button class="back" data-go="app">‹ App</button>
       <h1>Promemoria</h1>
-      <p class="lead">Il buddy ti ricorda le cose: ogni tot minuti oppure a un orario.</p>
+      <p class="lead">Il buddy ti ricorda le cose a un orario. Il promemoria per bere adesso è nella scheda <b>Acqua</b>.</p>
       <div class="card">
         <div class="row">
           <div><div class="row-label">Promemoria attivo</div><div class="row-sub" id="rem-summary">Spento</div></div>
@@ -540,33 +579,6 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
         </div>
       </div>
       <div id="rem-body">
-        <h2 class="sez">Ogni tot minuti</h2>
-        <div class="card">
-          <div class="row">
-            <div><div class="row-label">Ogni tot minuti</div><div class="row-sub" id="rem-int-summary">Acceso</div></div>
-            <label class="switch"><input type="checkbox" id="rem-int-on" aria-label="Promemoria ogni tot minuti attivo"><span></span></label>
-          </div>
-        </div>
-        <div id="rem-int-body">
-        <div class="field-gap"></div>
-        <div class="card">
-          <div class="stepper">
-            <button id="rem-minus" aria-label="Meno 5 minuti">−</button>
-            <output id="rem-out" aria-live="polite"><span class="big-num" id="rem-num">30</span><span class="big-unit">minuti</span></output>
-            <button id="rem-plus" aria-label="Più 5 minuti">+</button>
-          </div>
-        </div>
-        <h2>Scelte rapide</h2>
-        <div class="chips" id="rem-chips" role="radiogroup" aria-label="Intervallo promemoria"></div>
-        <div class="field-gap"></div>
-        <div class="card">
-          <label class="field" for="rem-testo">Messaggio</label>
-          <input class="input" id="rem-testo" placeholder="Bevi un po' d'acqua" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
-          <div class="conta-riga"><span class="hint">Si salva quando hai finito di scrivere.</span><span class="conta" id="rem-testo-conta">0/40</span></div>
-        </div>
-        <p class="hint">Anche da spento, il buddy ricorda ogni quanti minuti avevi scelto.</p>
-        </div>
-
         <h2 class="sez">A un orario</h2>
         <div class="card ro-card">
           <div id="ro-list"></div>
@@ -653,6 +665,160 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
         <button class="btn" type="submit">Salva</button>
         <button class="btn secondary" type="button" id="dt-annulla">Annulla</button>
         <button class="btn danger" type="button" id="dt-elimina">Elimina data</button>
+      </form>
+    </dialog>
+
+    <!-- ACQUA -->
+    <section class="screen wrap" id="scr-acqua" data-screen="acqua" data-tab="app" hidden>
+      <button class="back" data-go="app">‹ App</button>
+      <h1>Acqua</h1>
+      <p class="lead">Il buddy conta i bicchieri che bevi e ti ricorda di bere.</p>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-label">Acqua attiva</div><div class="row-sub" id="acqua-summary">Accesa</div></div>
+          <label class="switch"><input type="checkbox" id="acqua-on" aria-label="Acqua attiva"><span></span></label>
+        </div>
+      </div>
+      <div id="acqua-body">
+        <h2 class="sez">Oggi</h2>
+        <div class="card acqua-oggi">
+          <div class="bicchiere" aria-hidden="true"><div class="bicchiere-acqua" id="acqua-livello"></div></div>
+          <div class="acqua-txt">
+            <div class="acqua-num" id="acqua-testo">— di 8 oggi</div>
+            <div class="barra" aria-hidden="true"><span id="acqua-barra"></span></div>
+            <div class="row-sub" id="acqua-sub"></div>
+          </div>
+        </div>
+        <h2 class="sez">Obiettivo</h2>
+        <div class="card">
+          <div class="stepper">
+            <button id="acqua-minus" aria-label="Un bicchiere in meno">−</button>
+            <output aria-live="polite"><span class="big-num" id="acqua-num">8</span><span class="big-unit">bicchieri al giorno</span></output>
+            <button id="acqua-plus" aria-label="Un bicchiere in più">+</button>
+          </div>
+        </div>
+        <h2 class="sez">Promemoria «bevi»</h2>
+        <div class="card">
+          <div class="row">
+            <div><div class="row-label">Ricordami di bere</div><div class="row-sub" id="rem-int-summary">Acceso</div></div>
+            <label class="switch"><input type="checkbox" id="rem-int-on" aria-label="Promemoria per bere attivo"><span></span></label>
+          </div>
+        </div>
+        <div id="rem-int-body">
+        <div class="field-gap"></div>
+        <div class="card">
+          <div class="stepper">
+            <button id="rem-minus" aria-label="Meno 5 minuti">−</button>
+            <output id="rem-out" aria-live="polite"><span class="big-num" id="rem-num">30</span><span class="big-unit">minuti</span></output>
+            <button id="rem-plus" aria-label="Più 5 minuti">+</button>
+          </div>
+        </div>
+        <h2>Scelte rapide</h2>
+        <div class="chips" id="rem-chips" role="radiogroup" aria-label="Intervallo promemoria"></div>
+        <div class="field-gap"></div>
+        <div class="card">
+          <label class="field" for="rem-testo">Messaggio</label>
+          <input class="input" id="rem-testo" placeholder="Bevi un po' d'acqua" enterkeyhint="done" autocomplete="off" autocapitalize="sentences">
+          <div class="conta-riga"><span class="hint">Si salva quando hai finito di scrivere.</span><span class="conta" id="rem-testo-conta">0/40</span></div>
+        </div>
+        <p class="hint">Anche da spento, il buddy ricorda ogni quanti minuti avevi scelto.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- METEO DRONI -->
+    <section class="screen wrap" id="scr-droni" data-screen="droni" data-tab="app" hidden>
+      <button class="back" data-go="app">‹ App</button>
+      <div class="avviso-droni" role="note"><b>⚠︎</b> Non sostituisce D-Flight e l'app del drone.</div>
+      <h1>Meteo droni</h1>
+      <p class="lead">Il buddy ti dice se si può volare nei tuoi posti preferiti.</p>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-label">Meteo droni attivo</div><div class="row-sub" id="vl-summary">Acceso</div></div>
+          <label class="switch"><input type="checkbox" id="vl-on" aria-label="Meteo droni attivo"><span></span></label>
+        </div>
+      </div>
+      <div id="vl-body">
+        <h2 class="sez">I tuoi posti</h2>
+        <p class="hint">Trascina ≡ per cambiare l'ordine: è l'ordine delle pagine sul buddy. Tocca un posto per il meteo ora per ora.</p>
+        <div class="field-gap"></div>
+        <div class="card ro-card"><div id="pv-list"></div></div>
+        <div class="pos-msg" id="pv-msg" role="status" hidden></div>
+        <div class="field-gap"></div>
+        <button class="btn" type="button" id="pv-qui">Salva questo posto</button>
+        <button class="btn secondary" type="button" id="pv-cerca">Cerca un posto</button>
+        <p class="hint" id="pv-pieno" hidden>Hai già 6 posti: è il massimo. Per aggiungerne uno nuovo, togline prima uno (tocca la matita accanto al posto).</p>
+        <p class="hint">Salvo la posizione arrotondata (circa 1 km).</p>
+
+        <h2 class="sez">I tuoi droni</h2>
+        <p class="hint"><b>Verde</b> = si vola · <b>giallo</b> = al limite · <b>sopra il giallo</b> = non si vola. Vento in metri al secondo (m/s).</p>
+        <div class="field-gap"></div>
+        <div class="card ro-card"><div id="dr-list"></div></div>
+        <div class="field-gap"></div>
+        <button class="btn secondary" type="button" id="dr-add">+ Aggiungi drone</button>
+        <button class="btn secondary" type="button" id="dr-ripristina">Ripristina i droni di partenza</button>
+      </div>
+    </section>
+
+    <!-- METEO DRONI: ora per ora -->
+    <section class="screen wrap" id="scr-volo" data-screen="volo" data-tab="app" hidden>
+      <button class="back" data-go="droni">‹ Meteo droni</button>
+      <div class="avviso-droni" role="note"><b>⚠︎</b> Non sostituisce D-Flight e l'app del drone.</div>
+      <h1 id="vl-nome">Posto</h1>
+      <p class="lead" id="vl-coord"></p>
+      <div class="vl-legenda" id="vl-legenda"></div>
+      <p class="pos-msg" id="vl-msg" role="status" hidden></p>
+      <button class="btn secondary" type="button" id="vl-riprova" hidden style="margin-top:12px">Riprova</button>
+      <div id="vl-ore"></div>
+      <p class="hint">Dati di Open-Meteo. Il vento che conta è il più alto tra il vento a 120 m e le raffiche.
+        Rosso anche con pioggia oltre 0,2 mm, probabilità di pioggia dal 60%, visibilità sotto 1 km, sotto −10 °C o sopra 40 °C;
+        giallo con probabilità di pioggia dal 30% o sotto 5 °C.</p>
+    </section>
+
+    <dialog class="sheet" id="pv-dialog" aria-labelledby="pv-titolo">
+      <form id="pv-form" method="dialog" autocomplete="off">
+        <h2 id="pv-titolo">Come si chiama questo posto?</h2>
+        <label class="field" for="pv-nome">Nome</label>
+        <input class="input" id="pv-nome" placeholder="es. Spiaggia di casa" enterkeyhint="done" autocapitalize="sentences">
+        <div class="conta-riga"><span class="hint" id="pv-coord"></span><span class="conta" id="pv-nome-conta">0/24</span></div>
+        <p class="error" id="pv-errore" role="alert"></p>
+        <button class="btn" type="submit">Salva</button>
+        <button class="btn secondary" type="button" id="pv-annulla">Annulla</button>
+        <button class="btn danger" type="button" id="pv-elimina">Elimina posto</button>
+      </form>
+    </dialog>
+
+    <dialog class="sheet" id="cerca-dialog" aria-labelledby="cerca-titolo">
+      <form id="cerca-form" autocomplete="off">
+        <h2 id="cerca-titolo">Cerca un posto</h2>
+        <label class="field" for="cerca-testo">Nome del posto</label>
+        <div class="cerca-riga">
+          <input class="input" id="cerca-testo" placeholder="es. Castiglione della Pescaia" enterkeyhint="search" type="search">
+          <button class="btn cerca-btn" type="submit">Cerca</button>
+        </div>
+        <p class="hint" id="cerca-msg" aria-live="polite"></p>
+        <div class="cerca-lista" id="cerca-lista"></div>
+        <button class="btn secondary" type="button" id="cerca-chiudi">Chiudi</button>
+      </form>
+    </dialog>
+
+    <dialog class="sheet" id="dr-dialog" aria-labelledby="dr-titolo">
+      <form id="dr-form" method="dialog" autocomplete="off">
+        <h2 id="dr-titolo">Modifica drone</h2>
+        <label class="field" for="dr-nome">Nome (è la scritta nel cerchio)</label>
+        <input class="input" id="dr-nome" placeholder="es. MINI 4" enterkeyhint="next" autocapitalize="characters">
+        <div class="conta-riga"><span class="hint"></span><span class="conta" id="dr-nome-conta">0/8</span></div>
+        <div class="field-gap"></div>
+        <div class="dr-soglie-campi">
+          <div><label class="field" for="dr-verde">Verde fino a (m/s)</label><input class="input" id="dr-verde" inputmode="decimal" placeholder="6"></div>
+          <div><label class="field" for="dr-giallo">Giallo fino a (m/s)</label><input class="input" id="dr-giallo" inputmode="decimal" placeholder="8"></div>
+        </div>
+        <p class="hint">Tra 1 e 20 m/s, con il verde più basso del giallo.</p>
+        <p class="error" id="dr-errore" role="alert"></p>
+        <button class="btn" type="submit">Salva</button>
+        <button class="btn secondary" type="button" id="dr-annulla">Annulla</button>
+        <button class="btn danger" type="button" id="dr-elimina">Elimina drone</button>
       </form>
     </dialog>
 
@@ -820,7 +986,7 @@ dialog.sheet .btn[type="submit"] { margin-top: 8px; }
 /* =====================================================================
    COSTANTI
    ===================================================================== */
-const APP_VERSION = "1.7.0";
+const APP_VERSION = "1.8.0";
 const CFG = Object.assign({ controlloSecondi: 15, controlloInAttesaSecondi: 4, accesoEntroMinuti: 3 }, window.DESKBUDDY_CONFIG || {});
 const DB_URL = String(CFG.databaseURL || "").replace(/\/+$/, "");
 
@@ -832,12 +998,22 @@ const COLORI = [
 const GIORNI = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
 const PROMEMORIA_RAPIDI = [15, 30, 45, 60, 90, 120];
 const PROMEMORIA_MIN = 5, PROMEMORIA_MAX = 240, PROMEMORIA_PASSO = 5, PROMEMORIA_PREDEFINITO = 30;
+// acqua e meteo droni (servono già ai valori iniziali)
+const ACQUA_MIN = 1, ACQUA_MAX = 20, ACQUA_PREDEFINITO = 8;
+const copiaDroni = l => l.map(d => ({ ...d }));
+const DRONI_PARTENZA = [
+  { id: "avata360", nome: "AVATA", verde: 6, giallo: 8 },
+  { id: "air3s", nome: "AIR 3S", verde: 7, giallo: 9.5 }
+];
 
 /* ---------- funzioni del buddy (pagina "App") ----------
    chiave = nome del campo dentro "funzioni" nel database (vedi PROTOCOLLO.md).
    La sveglia non ha una chiave: il suo interruttore è sveglia.attiva.
    pagina = schermata che si apre toccando la scheda. sotto = sotto-funzioni (solo Fotografia). */
 const ICONE = {
+  acqua: '<path d="M12 2.7s-6 6.6-6 11.3a6 6 0 0 0 12 0c0-4.7-6-11.3-6-11.3z"/><path d="M9 15a3 3 0 0 0 3 3"/>',
+  iss: '<path d="M13 7 9 3 5 7l4 4"/><path d="m17 11 4 4-4 4-4-4"/><path d="m8 12 4 4 6-6-4-4Z"/><path d="m16 8 3-3"/><path d="M9 21a6 6 0 0 0-6-6"/>',
+  droni: '<circle cx="5" cy="5" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M7 7l3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/><rect x="10" y="10" width="4" height="4" rx="1"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4M10 2h4M12 5V2"/>',
   pomodoro: '<circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-3 3-4M9 6.5 12 8l3-1.5"/>',
   promemoria: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -850,32 +1026,35 @@ const ICONE = {
   giochi: '<rect x="2" y="7" width="20" height="12" rx="5"/><path d="M7 11v4M5 13h4M15.5 12.5h.01M18 14.5h.01"/>',
   foto: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/>'
 };
-const FUNZIONI = [
-  { chiave: "pomodoro", nome: "Pomodoro", desc: "Lavoro a blocchi, con le pause" },
-  { chiave: "promemoria", nome: "Promemoria", pagina: "promemoria" },
-  { chiave: null, icona: "sveglia", nome: "Sveglia", pagina: "sveglia" },
+const FUNZIONI = [   // nello stesso ordine delle pagine del buddy
   { chiave: "meteo", nome: "Meteo", pagina: "meteo" },
-  { chiave: "radar", nome: "Radar aerei", desc: "Mostra gli aerei che passano sopra casa" },
-  { chiave: "timer", nome: "Timer", desc: "Timer da cucina sul buddy" },
+  { chiave: "droni", nome: "Meteo droni", pagina: "droni" },
   { chiave: "contoAllaRovescia", nome: "Conto alla rovescia", pagina: "date" },
-  { chiave: "respiro", nome: "Respiro", desc: "Qualche respiro lento, guidato" },
-  { chiave: "tiPenso", nome: "Ti penso", desc: "Un pensiero che arriva sul buddy" },
-  { chiave: "giochi", nome: "Giochi", desc: "Tris, Forza 4 e Dado col buddy", pagina: "giochi" },
+  { chiave: "acqua", nome: "Acqua", pagina: "acqua" },
+  { chiave: "timer", nome: "Timer", desc: "Timer da cucina sul buddy" },
   { chiave: "foto", nome: "Fotografia", desc: "Aiuti per chi fotografa", sotto: [
     { chiave: "oraDoro", nome: "Ora d'oro e ora blu", desc: "Avvisa quando c'è la luce più bella" },
     { chiave: "sfida", nome: "Sfida del giorno", desc: "Un'idea di foto nuova ogni giorno" },
     { chiave: "diario", nome: "Diario delle uscite", desc: "Tiene il conto delle uscite a fotografare" },
     { chiave: "delusa", nome: "Faccia delusa", desc: "Il buddy fa il broncio dopo tanti giorni senza foto" }
-  ] }
+  ] },
+  { chiave: "iss", nome: "Stazione Spaziale (ISS)", desc: "Avvisa quando passa sopra casa", nota: true },
+  { chiave: "radar", nome: "Radar aerei", desc: "Mostra gli aerei che passano sopra casa" },
+  { chiave: "giochi", nome: "Giochi", desc: "Tris, Forza 4 e Dado col buddy", pagina: "giochi" },
+  { chiave: "pomodoro", nome: "Pomodoro", desc: "Lavoro a blocchi, con le pause" },
+  { chiave: "promemoria", nome: "Promemoria", pagina: "promemoria" },
+  { chiave: null, icona: "sveglia", nome: "Sveglia", pagina: "sveglia" },
+  { chiave: "respiro", nome: "Respiro", desc: "Qualche respiro lento, guidato" },
+  { chiave: "tiPenso", nome: "Ti penso", desc: "Un pensiero che arriva sul buddy" }
 ];
 // tutte le chiavi di "funzioni", nell'ordine del protocollo
-const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "radar", "timer", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa"];
+const CHIAVI_FUNZIONI = ["pomodoro", "promemoria", "meteo", "radar", "timer", "contoAllaRovescia", "respiro", "tiPenso", "giochi", "foto", "oraDoro", "sfida", "diario", "delusa", "acqua", "iss", "droni"];
 const NOMI_FUNZIONI = {};
 FUNZIONI.forEach(f => { if (f.chiave) NOMI_FUNZIONI[f.chiave] = f.nome; (f.sotto || []).forEach(s => NOMI_FUNZIONI[s.chiave] = s.nome); });
 
 const LS = {
   nome: "deskbuddy.nome", codice: "deskbuddy.codice", cache: "deskbuddy.cache",
-  prova: "deskbuddy.prova", tab: "deskbuddy.tab", sim: "deskbuddy.simAuto", avvisoTesto: "deskbuddy.avvisoTesto"
+  prova: "deskbuddy.prova", tab: "deskbuddy.tab", sim: "deskbuddy.simAuto", avvisoEmoji: "deskbuddy.avvisoEmoji"
 };
 
 function predefinite() {
@@ -887,6 +1066,9 @@ function predefinite() {
     promemoriaIntervallo: true,                // promemoria "ogni tot minuti" acceso
     promemoriaTesto: "Bevi un po' d'acqua",   // messaggio del promemoria a intervalli
     promemoriaOrari: [],                       // promemoria a un orario (massimo 10)
+    acquaObiettivo: ACQUA_PREDEFINITO,         // bicchieri al giorno
+    postiVolo: [],                             // meteo droni: i tuoi posti (massimo 6)
+    droni: copiaDroni(DRONI_PARTENZA),         // meteo droni: i tuoi droni (massimo 2)
     dateImportanti: [],                        // date del conto alla rovescia (massimo 10)
     dateDallApp: false,                        // false = l'app non ha mai mandato date: valgono quelle del buddy
     citta: "",
@@ -948,6 +1130,9 @@ function pulisci(x) {
     promemoriaTesto: typeof x.promemoriaTesto === "string" && testoPulito(x.promemoriaTesto).trim() ? testoPulito(x.promemoriaTesto).trim() : d.promemoriaTesto,
     promemoriaOrari: pulisciOrari(x.promemoriaOrari),
     dateImportanti: pulisciDate(x.dateImportanti),
+    acquaObiettivo: intIn(x.acquaObiettivo, ACQUA_MIN, ACQUA_MAX, d.acquaObiettivo),
+    postiVolo: pulisciPosti(x.postiVolo),
+    droni: x.droni == null ? d.droni : pulisciDroni(x.droni),
     dateDallApp: x.dateDallApp === true,
     citta: typeof x.citta === "string" ? x.citta.slice(0, 60) : d.citta,
     lat: posOk ? Math.round(x.lat * 100) / 100 : null,
@@ -1049,7 +1234,7 @@ async function invia() {
   S.inviando = true; render();
   const versione = Math.max(Date.now(), (S.imp.versione || 0) + 1);
   const { versione: _v, ...resto } = S.imp;
-  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, funzioni: { ...resto.funzioni }, promemoriaOrari: resto.promemoriaOrari.map(r => ({ ...r, giorni: r.giorni.slice() })), dateImportanti: resto.dateImportanti.map(d => ({ ...d })), versione };
+  const dati = { ...resto, sveglia: { ...resto.sveglia, giorni: resto.sveglia.giorni.slice() }, funzioni: { ...resto.funzioni }, promemoriaOrari: resto.promemoriaOrari.map(r => ({ ...r, giorni: r.giorni.slice() })), dateImportanti: resto.dateImportanti.map(d => ({ ...d })), postiVolo: resto.postiVolo.map(x => ({ ...x })), droni: copiaDroni(resto.droni), versione };
   try {
     await dbPut("impostazioni", dati);
     // se nel frattempo l'utente ha cambiato altro, resta "modificato" e si reinvia
@@ -1316,7 +1501,7 @@ function costruisci() {
   $("#fn-list").innerHTML = FUNZIONI.map(f => {
     const id = f.chiave || f.icona, inp = `fn-${id}`;
     const testo = `<span class="fn-ico">${svg(f.icona || f.chiave)}</span>
-      <span class="fn-txt"><span class="fn-name">${f.nome}</span><span class="fn-desc" id="${inp}-desc">${f.desc || ""}</span></span>`;
+      <span class="fn-txt"><span class="fn-name">${f.nome}</span><span class="fn-desc" id="${inp}-desc">${f.desc || ""}</span>${f.nota ? `<span class="fn-nota" id="${inp}-nota"></span>` : ""}</span>`;
     // con impostazioni proprie: la scheda apre la pagina; senza: toccare la scheda accende/spegne
     const main = f.pagina
       ? `<button class="fn-main" data-go="${f.pagina}" aria-label="Apri ${f.nome}">${testo}${freccia}</button>`
@@ -1390,7 +1575,7 @@ function render() {
   $("#rem-body").classList.toggle("off", !pmOn);
   const nOrari = imp.promemoriaOrari.filter(r => r.attivo && !scaduto(r)).length;
   const pmInt = imp.promemoriaIntervallo;
-  const descPm = [pmInt ? `Ogni ${pm} minuti` : "", nOrari ? `${nOrari} a orario` : ""].filter(Boolean).join(" · ") || "Nessun promemoria attivo";
+  const descPm = nOrari ? `${nOrari} a orario` : "Nessun promemoria a orario";
   $("#rem-summary").textContent = pmOn ? descPm : "Spento";
   $("#rem-int-on").checked = pmInt;
   $("#rem-int-body").classList.toggle("off", !pmInt);
@@ -1423,6 +1608,12 @@ function render() {
   $("#dt-body").classList.toggle("off", !dtOn);
   $("#dt-summary").textContent = dtOn ? descDate : "Spento";
   renderDate();
+
+  // acqua, meteo droni, ISS
+  renderAcqua();
+  renderDroni();
+  $("#fn-iss-nota").textContent = haPosizione(imp) ? `Usa la posizione del meteo: ${imp.luogo || `${imp.lat}, ${imp.lon}`}`
+    : imp.citta ? `Usa la posizione del meteo: ${imp.citta}` : "Usa la posizione del meteo: sceglila nella pagina Meteo";
 
   // pagina App
   const fnAccesa = k => k === "sveglia" ? sv.attiva : imp.funzioni[k];
@@ -1470,6 +1661,12 @@ function renderInfo() {
     const or = pulisciOrari(st.promemoriaOrari);
     righe.push(["Promemoria a orario", or.length ? `${or.length} (${or.filter(r => r.attivo && !scaduto(r)).length} accesi)` : "nessuno"]);
   }
+  if (st && Number.isInteger(st.acquaOggi)) righe.push(["Bicchieri oggi", `${st.acquaOggi}${Number.isInteger(st.acquaObiettivo) ? " di " + st.acquaObiettivo : ""}`]);
+  if (st && "promemoriaMinuti" in st) {
+    const pv = pulisciPosti(st.postiVolo);
+    righe.push(["Posti di volo", pv.length ? pv.map(p => p.nome).join(", ") : "nessuno"]);
+    if (st.droni != null) righe.push(["Droni", pulisciDroni(st.droni).map(d => `${d.nome} ${fmt1(d.verde)}/${fmt1(d.giallo)}`).join(", ")]);
+  }
   if (st && "promemoriaMinuti" in st) {
     const dt = pulisciDate(st.dateImportanti);
     righe.push(["Date importanti", dt.length ? dt.map(d => d.nome).join(", ") : "nessuna"]);
@@ -1489,7 +1686,7 @@ function renderInfo() {
 /* =====================================================================
    NAVIGAZIONE
    ===================================================================== */
-const SCHERMATE = ["occhi", "app", "sveglia", "promemoria", "meteo", "date", "giochi", "impostazioni"];
+const SCHERMATE = ["occhi", "app", "sveglia", "promemoria", "acqua", "meteo", "droni", "date", "giochi", "impostazioni"];
 function vai(tab) {
   // uscendo dalla partita la si chiude, così il buddy torna normale
   if (S.tab === "partita" && tab !== "partita" && G) { chiudiGioco("uscita"); G = null; }
@@ -1498,7 +1695,7 @@ function vai(tab) {
   $$(".screen").forEach(s => { s.hidden = s.dataset.screen !== tab; if (!s.hidden) voceMenu = s.dataset.tab || tab; });
   // Sveglia, Promemoria e Meteo stanno dentro "App": nel menu resta evidenziata App
   $$(".tab").forEach(b => b.dataset.go === voceMenu ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
-  ls.set(LS.tab, tab === "partita" ? "giochi" : tab);
+  ls.set(LS.tab, tab === "partita" ? "giochi" : tab === "volo" ? "droni" : tab);
   if (tab === "impostazioni") {
     $("#set-nome").value = S.nome; $("#set-codice").value = S.codice; $("#set-error").textContent = "";
     $("#test-box").hidden = ls.get(LS.prova) !== "1";
@@ -1509,6 +1706,7 @@ function vai(tab) {
   render();
   if (tab === "occhi") { requestAnimationFrame(() => { adattaCanvas($("#preview")); disegnaMiniature(); avviaAnimazione(); }); }
   if (tab === "meteo") requestAnimationFrame(avviaAnteprimeMeteo);
+  if (tab === "volo" && !voloPosto) vai("droni");
 }
 
 /* =====================================================================
@@ -1561,7 +1759,11 @@ async function simulaApplica(quando) {
   if (S.versioneServer == null) { toast("Prima cambia qualcosa, così c'è una versione da applicare."); return; }
   try {
     const dateBuddy = valori.dateDallApp ? valori.dateImportanti : (pulisciDate(S.stato && S.stato.dateImportanti).length ? S.stato.dateImportanti : DATE_SIMULATE);
-    await dbPut("stato", { ...valori, dateImportanti: dateBuddy, versione: S.versioneServer, ultimoContatto: quando ?? ORA_SERVER });
+    const st = { ...valori, dateImportanti: dateBuddy, versione: S.versioneServer, ultimoContatto: quando ?? ORA_SERVER };
+    // come il buddy vero: postiVolo solo se ce n'è almeno uno, droni sempre; bicchieri di oggi contati da lui
+    if (!st.postiVolo.length) delete st.postiVolo;
+    st.acquaOggi = Number.isInteger(S.stato && S.stato.acquaOggi) ? S.stato.acquaOggi : Math.min(3, valori.acquaObiettivo);
+    await dbPut("stato", st);
     toast("Buddy simulato: stato scritto ✓");
     controllaStato();
   } catch (e) { gestisciErrore(e); render(); toast("Non riesco a scrivere lo stato."); }
@@ -2665,19 +2867,18 @@ const ORARI_MAX = 10, TESTO_MAX = 40, TESTO_PREDEFINITO = "Bevi un po' d'acqua";
 const GIORNI_BREVI = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"];
 const MESI_BREVI = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
 
-// Il buddy non sa disegnare emoji e lettere accentate: è → e', à → a' … ; le emoji spariscono.
-const ACCENTATE = { "à": "a'", "á": "a'", "è": "e'", "é": "e'", "ì": "i'", "í": "i'", "ò": "o'", "ó": "o'", "ù": "u'", "ú": "u'",
-  "À": "A'", "Á": "A'", "È": "E'", "É": "E'", "Ì": "I'", "Í": "I'", "Ò": "O'", "Ó": "O'", "Ù": "U'", "Ú": "U'" };
-const SIMBOLI = { "’": "'", "‘": "'", "´": "'", "`": "'", "“": '"', "”": '"', "«": '"', "»": '"', "–": "-", "—": "-", "…": "...", "ß": "ss", " ": " " };
+// Dalla tappa 16 il buddy disegna anche à è é ì ò ù ç ñ °. Le emoji invece no: le tolgo.
+// Le altre lettere con segni (È, á, ü …) diventano la lettera semplice.
+const LETTERE_BUDDY = "àèéìòùçñ°";
+const SIMBOLI = { "’": "'", "‘": "'", "´": "'", "`": "'", "“": '"', "”": '"', "«": '"', "»": '"', "–": "-", "—": "-", "…": "...", "ß": "ss", "\u00a0": " " };
 function perBuddy(s) {
   let testo = "", avviso = false;
-  for (const ch of String(s)) {
+  for (const ch of String(s).normalize("NFC")) {
     const cc = ch.codePointAt(0);
-    if (cc >= 32 && cc <= 126) { testo += ch; continue; }
-    if (ACCENTATE[ch]) { testo += ACCENTATE[ch]; avviso = true; continue; }
-    if (SIMBOLI[ch]) { testo += SIMBOLI[ch]; continue; }          // apostrofo "curvo" dell'iPhone ecc.: nessun avviso
-    const base = ch.normalize("NFD").replace(/[̀-ͯ]/g, ""); // ç → c, ñ → n, ü → u
-    if (/^[\x20-\x7e]+$/.test(base)) testo += base;
+    if ((cc >= 32 && cc <= 126) || LETTERE_BUDDY.includes(ch)) { testo += ch; continue; }
+    if (SIMBOLI[ch]) { testo += SIMBOLI[ch]; continue; }
+    const base = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (/^[\x20-\x7e]+$/.test(base)) { testo += base; continue; }
     avviso = true;                                                   // emoji e altri segni: tolti
   }
   return { testo, avviso };
@@ -2780,9 +2981,9 @@ function puliziaMentreScrivo(inp, out, max = TESTO_MAX) {
     const c = Math.min(pos, inp.value.length);
     try { inp.setSelectionRange(c, c); } catch {}
   }
-  if (avviso && ls.get(LS.avvisoTesto) !== "1") {
-    ls.set(LS.avvisoTesto, "1");
-    toast("Il buddy non sa disegnare emoji e lettere accentate: le trasformo io (è → e').", 4500);
+  if (avviso && ls.get(LS.avvisoEmoji) !== "1") {
+    ls.set(LS.avvisoEmoji, "1");
+    toast("Il buddy non sa disegnare le emoji: le tolgo io.", 4000);
   }
   contaCaratteri(inp, out, max);
 }
@@ -3050,6 +3251,375 @@ function collegaDate() {
   $("#dt-dialog").addEventListener("cancel", () => { dtModifica = null; });
 }
 
+/* =====================================================================
+   ACQUA: bicchieri di oggi e obiettivo
+   ===================================================================== */
+function acquaOggi() {
+  const v = S.stato && S.stato.acquaOggi;
+  return Number.isInteger(v) && v >= 0 ? v : null;
+}
+function renderAcqua() {
+  const imp = S.imp, on = imp.funzioni.acqua, obj = imp.acquaObiettivo, oggi = acquaOggi();
+  $("#acqua-on").checked = on;
+  $("#acqua-body").classList.toggle("off", !on);
+  $("#acqua-num").textContent = obj;
+  $("#acqua-minus").disabled = obj <= ACQUA_MIN; $("#acqua-plus").disabled = obj >= ACQUA_MAX;
+  const pieno = oggi == null ? 0 : Math.min(1, oggi / obj);
+  $("#acqua-livello").style.height = Math.round(pieno * 100) + "%";
+  $("#acqua-barra").style.width = Math.round(pieno * 100) + "%";
+  $("#acqua-testo").textContent = oggi == null ? `— di ${obj} oggi` : `${oggi} di ${obj} oggi`;
+  const visto = S.stato && typeof S.stato.ultimoContatto === "number" ? fa(S.stato.ultimoContatto) : null;
+  $("#acqua-sub").textContent = oggi == null ? "Il buddy non ha ancora mandato i bicchieri di oggi."
+    : oggi >= obj ? `Obiettivo raggiunto! · aggiornato ${visto || "—"}` : `Li conta il buddy · aggiornato ${visto || "—"}`;
+  const base = oggi == null ? `Obiettivo ${obj} bicchieri` : `${oggi} di ${obj} oggi`;
+  $("#acqua-summary").textContent = on ? base : "Spenta";
+  $("#fn-acqua-desc").textContent = base + (imp.promemoriaIntervallo ? ` · bevi ogni ${imp.promemoriaMinuti} min` : "");
+}
+function collegaAcqua() {
+  $("#acqua-on").addEventListener("change", e => cambia(i => i.funzioni.acqua = e.target.checked));
+  $("#acqua-minus").addEventListener("click", () => cambia(i => i.acquaObiettivo = Math.max(ACQUA_MIN, i.acquaObiettivo - 1)));
+  $("#acqua-plus").addEventListener("click", () => cambia(i => i.acquaObiettivo = Math.min(ACQUA_MAX, i.acquaObiettivo + 1)));
+}
+
+/* =====================================================================
+   METEO DRONI: i tuoi posti, i tuoi droni, il meteo ora per ora
+   ===================================================================== */
+const POSTI_MAX = 6, NOME_POSTO_MAX = 24, DRONI_MAX = 2, NOME_DRONE_MAX = 8;
+
+// id: solo lettere minuscole e cifre, massimo 16, ricavato dal nome e diverso dagli altri
+function idDaNome(nome, usati, riserva = "posto") {
+  const base = String(nome).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16) || riserva;
+  let id = base, n = 2;
+  while (usati.has(id)) { const s = String(n++); id = base.slice(0, 16 - s.length) + s; }
+  return id;
+}
+function comeLista(v) { return Array.isArray(v) ? v : (v && typeof v === "object") ? Object.values(v) : []; }
+
+function pulisciPosti(v) {
+  const usati = new Set(), out = [];
+  for (const p of comeLista(v)) {
+    if (!p || typeof p !== "object" || out.length >= POSTI_MAX) continue;
+    if (typeof p.lat !== "number" || typeof p.lon !== "number" || Math.abs(p.lat) > 90 || Math.abs(p.lon) > 180) continue;
+    const nome = typeof p.nome === "string" ? testoPulito(p.nome, NOME_POSTO_MAX).trim() : "";
+    let id = typeof p.id === "string" && /^[a-z0-9]{1,16}$/.test(p.id) && !usati.has(p.id) ? p.id : idDaNome(nome, usati);
+    usati.add(id);
+    out.push({ id, nome: nome || "Posto", lat: arrotonda2(p.lat), lon: arrotonda2(p.lon) });
+  }
+  return out;
+}
+const numeroVento = x => typeof x === "number" && isFinite(x) && x >= 1 && x <= 20 ? Math.round(x * 10) / 10 : null;
+function pulisciDroni(v) {
+  const usati = new Set(), out = [];
+  for (const d of comeLista(v)) {
+    if (!d || typeof d !== "object" || out.length >= DRONI_MAX) continue;
+    const verde = numeroVento(d.verde), giallo = numeroVento(d.giallo);
+    if (verde == null || giallo == null || verde >= giallo) continue;
+    const nome = typeof d.nome === "string" ? testoPulito(d.nome, NOME_DRONE_MAX).trim() : "";
+    let id = typeof d.id === "string" && /^[a-z0-9]{1,16}$/.test(d.id) && !usati.has(d.id) ? d.id : idDaNome(nome, usati, "drone");
+    usati.add(id);
+    out.push({ id, nome: nome || "DRONE", verde, giallo });
+  }
+  return out.length ? out : copiaDroni(DRONI_PARTENZA); // serve almeno un drone
+}
+
+// semaforo: stesse regole del buddy
+function semaforo(h, d) {
+  const vento = Math.max(h.v120 ?? 0, h.raffiche ?? 0);
+  if (vento > d.giallo || (h.mm ?? 0) > 0.2 || (h.prob ?? 0) >= 60 || (h.vis != null && h.vis < 1000) ||
+      (h.t != null && (h.t < -10 || h.t > 40))) return "rosso";
+  if (vento > d.verde || (h.prob ?? 0) >= 30 || (h.t != null && h.t < 5)) return "giallo";
+  return "verde";
+}
+
+/* ---------- elenco dei posti (trascinabile) ---------- */
+let trascinoPosto = false;
+const MANIGLIA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg>`;
+const MATITA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>`;
+const coord = x => x.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt1 = x => x == null ? "—" : x.toLocaleString("it-IT", { maximumFractionDigits: 1 });
+function renderDroni() {
+  const imp = S.imp, on = imp.funzioni.droni;
+  $("#vl-on").checked = on;
+  $("#vl-body").classList.toggle("off", !on);
+  const desc = imp.postiVolo.length ? `${imp.postiVolo.length} ${imp.postiVolo.length === 1 ? "posto" : "posti"} · ${imp.droni.map(d => d.nome).join(", ")}` : "Aggiungi i tuoi posti di volo";
+  $("#vl-summary").textContent = on ? desc : "Spento";
+  $("#fn-droni-desc").textContent = desc;
+  if (!trascinoPosto) {
+    $("#pv-list").innerHTML = imp.postiVolo.length ? imp.postiVolo.map((p, i) => `
+      <div class="ro-row pv-row" data-pv="${p.id}">
+        <span class="pv-maniglia" aria-hidden="true" title="Trascina per cambiare l'ordine">${MANIGLIA}</span>
+        <button class="ro-main" data-pv-apri="${p.id}" aria-label="Meteo ora per ora">
+          <span class="pv-num">${i + 1}</span>
+          <span class="ro-txt"><span class="ro-testo"></span><span class="ro-rip">${coord(p.lat)}, ${coord(p.lon)}</span></span>
+        </button>
+        <button class="pv-modifica" data-pv-modifica="${p.id}" aria-label="Rinomina o elimina">${MATITA}</button>
+      </div>`).join("") : `<p class="ro-vuoto">Nessun posto. Salva il posto dove sei oppure cercane uno.</p>`;
+    imp.postiVolo.forEach(p => { $(`[data-pv="${p.id}"] .ro-testo`).textContent = p.nome; });
+  }
+  const pieno = imp.postiVolo.length >= POSTI_MAX;
+  $("#pv-qui").disabled = pieno || cercoPostoQui; $("#pv-cerca").disabled = pieno;
+  $("#pv-qui").textContent = cercoPostoQui ? "Cerco la posizione…" : "Salva questo posto";
+  $("#pv-pieno").hidden = !pieno;
+  // droni
+  $("#dr-list").innerHTML = imp.droni.map(d => `
+    <div class="ro-row" data-dr="${d.id}">
+      <button class="ro-main" data-dr-apri="${d.id}" aria-label="Modifica il drone">
+        <span class="dr-cerchio"></span>
+        <span class="ro-txt"><span class="dr-soglie"><span class="luce verde">fino a ${fmt1(d.verde)}</span><span class="luce giallo">fino a ${fmt1(d.giallo)}</span><span class="luce rosso">oltre</span></span><span class="ro-rip">m/s di vento</span></span>
+      </button>
+    </div>`).join("");
+  imp.droni.forEach(d => { $(`[data-dr="${d.id}"] .dr-cerchio`).textContent = d.nome; });
+  $("#dr-add").hidden = imp.droni.length >= DRONI_MAX;
+  if (S.tab === "volo") renderVolo();
+}
+function collegaTrascina(lista, quandoFinisce) {
+  let riga = null, pid = null;
+  lista.addEventListener("pointerdown", e => {
+    const h = e.target.closest(".pv-maniglia"); if (!h) return;
+    e.preventDefault(); riga = h.closest(".pv-row"); pid = e.pointerId; trascinoPosto = true;
+    try { h.setPointerCapture(pid); } catch {}
+    riga.classList.add("trascino");
+  });
+  lista.addEventListener("pointermove", e => {
+    if (!riga || e.pointerId !== pid) return;
+    let prima = null;
+    for (const r of $$(".pv-row", lista)) {
+      if (r === riga) continue;
+      const b = r.getBoundingClientRect(); if (e.clientY < b.top + b.height / 2) { prima = r; break; }
+    }
+    if (prima) { if (riga.nextElementSibling !== prima) lista.insertBefore(riga, prima); }
+    else if (lista.lastElementChild !== riga) lista.appendChild(riga);
+  });
+  const fine = e => {
+    if (!riga || e.pointerId !== pid) return;
+    riga.classList.remove("trascino"); riga = null; trascinoPosto = false;
+    quandoFinisce($$(".pv-row", lista).map(r => r.dataset.pv));
+  };
+  lista.addEventListener("pointerup", fine); lista.addEventListener("pointercancel", fine);
+}
+
+/* ---------- aggiungere, rinominare, eliminare un posto ---------- */
+let pvBozza = null; // { id?, lat, lon }
+function apriPosto(bozza, nomeSuggerito = "") {
+  pvBozza = bozza;
+  const p = bozza.id ? S.imp.postiVolo.find(x => x.id === bozza.id) : null;
+  $("#pv-titolo").textContent = p ? "Rinomina il posto" : "Come si chiama questo posto?";
+  $("#pv-nome").value = testoPulito(p ? p.nome : nomeSuggerito, NOME_POSTO_MAX);
+  contaCaratteri($("#pv-nome"), $("#pv-nome-conta"), NOME_POSTO_MAX);
+  $("#pv-coord").textContent = `Posizione: ${coord(bozza.lat)}, ${coord(bozza.lon)} (arrotondata, circa 1 km)`;
+  $("#pv-elimina").hidden = !p;
+  $("#pv-errore").textContent = "";
+  const dlg = $("#pv-dialog"); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+}
+function chiudiDialogo(sel) { const d = $(sel); if (d.close) d.close(); else d.removeAttribute("open"); }
+function salvaPosto() {
+  const b = pvBozza; if (!b) return;
+  const nome = testoPulito($("#pv-nome").value, NOME_POSTO_MAX).trim();
+  if (!nome) { $("#pv-errore").textContent = "Scrivi il nome del posto."; return; }
+  if (!b.id && S.imp.postiVolo.length >= POSTI_MAX) { $("#pv-errore").textContent = `Hai già ${POSTI_MAX} posti: togline uno per aggiungerne un altro.`; return; }
+  cambia(i => {
+    if (b.id) { const p = i.postiVolo.find(x => x.id === b.id); if (p) p.nome = nome; }   // rinominando l'id resta lo stesso
+    else i.postiVolo.push({ id: idDaNome(nome, new Set(i.postiVolo.map(x => x.id))), nome, lat: arrotonda2(b.lat), lon: arrotonda2(b.lon) });
+  });
+  toast(b.id ? "Posto rinominato" : `Posto salvato: ${nome}`);
+  pvBozza = null; chiudiDialogo("#pv-dialog");
+}
+function eliminaPosto(id) {
+  const p = S.imp.postiVolo.find(x => x.id === id); if (!p) return false;
+  if (!confirm(`Vuoi eliminare il posto "${p.nome}"?`)) return false;
+  cambia(i => { i.postiVolo = i.postiVolo.filter(x => x.id !== id); });
+  toast("Posto eliminato");
+  return true;
+}
+
+/* ---------- "Salva questo posto": posizione del telefono ---------- */
+let cercoPostoQui = false;
+function mostraEsitoPosto(tipo, html) { const b = $("#pv-msg"); b.hidden = !html; b.className = "pos-msg" + (tipo ? " " + tipo : ""); b.innerHTML = html || ""; }
+async function salvaPostoQui() {
+  if (cercoPostoQui) return;
+  if (S.imp.postiVolo.length >= POSTI_MAX) { mostraEsitoPosto("err", `Hai già ${POSTI_MAX} posti: togline uno per aggiungerne un altro.`); return; }
+  if (!("geolocation" in navigator) || !window.isSecureContext) { mostraEsitoPosto("err", "Questo browser non può leggere la posizione. Usa <b>Cerca un posto</b>."); return; }
+  if (navigator.onLine === false) { mostraEsitoPosto("err", "Nessuna connessione a internet. Collegati e riprova."); return; }
+  cercoPostoQui = true; mostraEsitoPosto("", ""); renderDroni();
+  try {
+    const p = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }));
+    const lat = arrotonda2(p.coords.latitude), lon = arrotonda2(p.coords.longitude); // arrotondo prima di tutto
+    const suggerito = await nomeLuogo(lat, lon);
+    apriPosto({ lat, lon }, suggerito);
+  } catch (e) {
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (e && e.code === 1) mostraEsitoPosto("err", "Non hai dato il permesso di usare la posizione.<br>" + (ios ? ISTRUZIONI_PERMESSO.ios : ISTRUZIONI_PERMESSO.android));
+    else if (e && (e.code === 2 || e.code === 3)) mostraEsitoPosto("err", "Non riesco a trovare la posizione. Controlla che la localizzazione sia attiva e riprova, oppure usa <b>Cerca un posto</b>.");
+    else mostraEsitoPosto("err", "Qualcosa è andato storto. Riprova, oppure usa <b>Cerca un posto</b>.");
+  } finally { cercoPostoQui = false; renderDroni(); }
+}
+
+/* ---------- "Cerca un posto" per nome (Open-Meteo, gratuito, senza chiave) ---------- */
+let risultatiCerca = [];
+async function cercaPosto() {
+  const q = $("#cerca-testo").value.trim();
+  if (q.length < 2) { $("#cerca-msg").textContent = "Scrivi almeno 2 lettere."; return; }
+  if (navigator.onLine === false) { $("#cerca-msg").textContent = "Nessuna connessione a internet."; return; }
+  $("#cerca-msg").textContent = "Cerco…"; $("#cerca-lista").innerHTML = "";
+  try {
+    const j = await conTempoMassimo(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=it&format=json`);
+    risultatiCerca = (j.results || []).filter(r => typeof r.latitude === "number" && typeof r.longitude === "number");
+    $("#cerca-msg").textContent = risultatiCerca.length ? "Tocca il posto giusto:" : "Non ho trovato niente con questo nome. Prova a scriverlo in un altro modo.";
+    $("#cerca-lista").innerHTML = risultatiCerca.map((r, i) => `<button type="button" class="cerca-ris" data-ris="${i}"><b></b><span></span></button>`).join("");
+    risultatiCerca.forEach((r, i) => {
+      const b = $(`[data-ris="${i}"]`);
+      b.querySelector("b").textContent = r.name;
+      b.querySelector("span").textContent = [r.admin1, r.country].filter(Boolean).join(", ");
+    });
+  } catch { $("#cerca-msg").textContent = "La ricerca non risponde. Riprova tra poco."; }
+}
+
+/* ---------- droni ---------- */
+let drModifica = null;
+function apriDrone(id) {
+  const d = id ? S.imp.droni.find(x => x.id === id) : null;
+  if (!d && S.imp.droni.length >= DRONI_MAX) return;
+  drModifica = d ? d.id : null;
+  $("#dr-titolo").textContent = d ? "Modifica drone" : "Nuovo drone";
+  $("#dr-nome").value = d ? d.nome : "";
+  contaCaratteri($("#dr-nome"), $("#dr-nome-conta"), NOME_DRONE_MAX);
+  $("#dr-verde").value = d ? String(d.verde).replace(".", ",") : "";
+  $("#dr-giallo").value = d ? String(d.giallo).replace(".", ",") : "";
+  $("#dr-elimina").hidden = !d || S.imp.droni.length < 2;
+  $("#dr-errore").textContent = "";
+  const dlg = $("#dr-dialog"); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+}
+function salvaDrone() {
+  const nome = testoPulito($("#dr-nome").value, NOME_DRONE_MAX).trim();
+  const num = s => { const n = Number(String(s).trim().replace(",", ".")); return isFinite(n) && String(s).trim() !== "" ? n : NaN; };
+  const verde = num($("#dr-verde").value), giallo = num($("#dr-giallo").value);
+  const err = !nome ? "Scrivi il nome del drone."
+    : !(verde >= 1 && verde <= 20) || !(giallo >= 1 && giallo <= 20) ? "Verde e giallo devono essere tra 1 e 20 m/s."
+    : verde >= giallo ? "Il verde deve essere più basso del giallo." : "";
+  if (err) { $("#dr-errore").textContent = err; return; }
+  const r1 = x => Math.round(x * 10) / 10;
+  cambia(i => {
+    if (drModifica) { const d = i.droni.find(x => x.id === drModifica); if (d) Object.assign(d, { nome, verde: r1(verde), giallo: r1(giallo) }); }
+    else if (i.droni.length < DRONI_MAX) i.droni.push({ id: idDaNome(nome, new Set(i.droni.map(x => x.id)), "drone"), nome, verde: r1(verde), giallo: r1(giallo) });
+  });
+  toast(drModifica ? "Drone aggiornato" : "Drone aggiunto");
+  drModifica = null; chiudiDialogo("#dr-dialog");
+}
+
+/* ---------- dettaglio ora per ora ---------- */
+let voloPosto = null, voloDati = null, voloStato = "";
+function apriVolo(id) { voloPosto = id; voloDati = null; vai("volo"); caricaVolo(); }
+function oraRoma(d = new Date()) {
+  // "AAAA-MM-GGTHH" nell'ora italiana, come le ore di Open-Meteo con timezone=Europe/Rome
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23" }).formatToParts(d).map(x => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}T${p.hour}`;
+}
+async function caricaVolo() {
+  const p = S.imp.postiVolo.find(x => x.id === voloPosto);
+  if (!p) { vai("droni"); return; }
+  if (navigator.onLine === false) { voloStato = "offline"; renderVolo(); return; }
+  voloStato = "carico"; renderVolo();
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}` +
+    `&hourly=wind_speed_120m,wind_gusts_10m,precipitation_probability,precipitation,temperature_2m,visibility` +
+    `&wind_speed_unit=ms&timezone=Europe%2FRome&forecast_days=4`;
+  try {
+    const j = await conTempoMassimo(url, 12000), h = j.hourly || {};
+    const adesso = oraRoma();
+    const ore = (h.time || []).map((t, k) => ({
+      t: t, v120: h.wind_speed_120m?.[k] ?? null, raffiche: h.wind_gusts_10m?.[k] ?? null,
+      prob: h.precipitation_probability?.[k] ?? null, mm: h.precipitation?.[k] ?? null,
+      temp: h.temperature_2m?.[k] ?? null, vis: h.visibility?.[k] ?? null
+    })).filter(o => o.t.slice(0, 13) >= adesso).slice(0, 72);
+    if (voloPosto !== p.id) return;
+    voloDati = ore; voloStato = ore.length ? "ok" : "vuoto";
+  } catch { voloStato = "errore"; }
+  renderVolo();
+}
+function renderVolo() {
+  const p = S.imp.postiVolo.find(x => x.id === voloPosto);
+  if (!p) return;
+  $("#vl-nome").textContent = p.nome;
+  $("#vl-coord").textContent = `${coord(p.lat)}, ${coord(p.lon)} · prossime 72 ore`;
+  $("#vl-legenda").innerHTML = S.imp.droni.map(d => `<span class="vl-dr"><b></b> verde fino a ${fmt1(d.verde)} · giallo fino a ${fmt1(d.giallo)} m/s</span>`).join("");
+  $$("#vl-legenda .vl-dr b").forEach((b, i) => b.textContent = S.imp.droni[i].nome);
+  const msg = { carico: "Carico il meteo…", offline: "Nessuna connessione a internet. Collegati e riprova.",
+                errore: "Il servizio del meteo non risponde. Riprova tra poco.", vuoto: "Non ci sono previsioni per questo posto." }[voloStato] || "";
+  $("#vl-msg").textContent = msg; $("#vl-msg").hidden = !msg;
+  $("#vl-riprova").hidden = !(voloStato === "offline" || voloStato === "errore");
+  if (voloStato !== "ok" || !voloDati) { $("#vl-ore").innerHTML = ""; return; }
+  const oggi = oraRoma().slice(0, 10), domani = oraRoma(new Date(Date.now() + 86400000)).slice(0, 10);
+  let giorno = "", html = "";
+  for (const o of voloDati) {
+    const g = o.t.slice(0, 10);
+    if (g !== giorno) {
+      giorno = g;
+      const [y, m, d] = g.split("-").map(Number), dt = new Date(y, m - 1, d);
+      const nome = g === oggi ? "Oggi" : g === domani ? "Domani" : `${GIORNI[(dt.getDay() + 6) % 7]} ${d} ${MESI[m - 1]}`;
+      html += `<h3 class="vl-giorno">${nome}</h3>`;
+    }
+    const h = { v120: o.v120, raffiche: o.raffiche, prob: o.prob, mm: o.mm, t: o.temp, vis: o.vis };
+    const luci = S.imp.droni.map((d, i) => `<span class="luce ${semaforo(h, d)}" data-i="${i}"></span>`).join("");
+    const extra = o.vis != null && o.vis < 5000 ? ` · visibilità ${o.vis < 1000 ? Math.round(o.vis) + " m" : fmt1(o.vis / 1000) + " km"}` : "";
+    html += `<div class="vl-ora">
+      <span class="vl-h">${o.t.slice(11, 13)}</span>
+      <span class="vl-dati">Vento ${fmt1(o.v120)} · raffiche ${fmt1(o.raffiche)} m/s<br>Pioggia ${o.prob ?? "—"}% · ${fmt1(o.mm)} mm · ${fmt1(o.temp)} °C${extra}</span>
+      <span class="vl-luci">${luci}</span>
+    </div>`;
+  }
+  $("#vl-ore").innerHTML = html;
+  $$("#vl-ore .luce").forEach(l => { const d = S.imp.droni[+l.dataset.i]; l.textContent = d.nome; l.title = `${d.nome}: ${l.classList[1]}`; });
+}
+
+function collegaDroni() {
+  $("#vl-on").addEventListener("change", e => cambia(i => i.funzioni.droni = e.target.checked));
+  $("#pv-qui").addEventListener("click", salvaPostoQui);
+  $("#pv-cerca").addEventListener("click", () => {
+    if (S.imp.postiVolo.length >= POSTI_MAX) return;
+    $("#cerca-testo").value = ""; $("#cerca-msg").textContent = ""; $("#cerca-lista").innerHTML = "";
+    const d = $("#cerca-dialog"); if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+    setTimeout(() => $("#cerca-testo").focus(), 50);
+  });
+  $("#cerca-form").addEventListener("submit", e => { e.preventDefault(); cercaPosto(); });
+  $("#cerca-chiudi").addEventListener("click", () => chiudiDialogo("#cerca-dialog"));
+  $("#cerca-lista").addEventListener("click", e => {
+    const b = e.target.closest("[data-ris]"); if (!b) return;
+    const r = risultatiCerca[+b.dataset.ris]; chiudiDialogo("#cerca-dialog");
+    apriPosto({ lat: arrotonda2(r.latitude), lon: arrotonda2(r.longitude) }, r.name);
+  });
+  $("#pv-list").addEventListener("click", e => {
+    const a = e.target.closest("[data-pv-apri]"); if (a) { apriVolo(a.dataset.pvApri); return; }
+    const m = e.target.closest("[data-pv-modifica]");
+    if (m) { const p = S.imp.postiVolo.find(x => x.id === m.dataset.pvModifica); if (p) apriPosto({ id: p.id, lat: p.lat, lon: p.lon }); }
+  });
+  collegaTrascina($("#pv-list"), ordine => {
+    if (ordine.join() === S.imp.postiVolo.map(p => p.id).join()) { renderDroni(); return; }
+    cambia(i => { i.postiVolo = ordine.map(id => i.postiVolo.find(p => p.id === id)).filter(Boolean); });
+    toast("Ordine salvato");
+  });
+  $("#pv-nome").addEventListener("input", () => puliziaMentreScrivo($("#pv-nome"), $("#pv-nome-conta"), NOME_POSTO_MAX));
+  $("#pv-form").addEventListener("submit", e => { e.preventDefault(); salvaPosto(); });
+  $("#pv-annulla").addEventListener("click", () => { pvBozza = null; chiudiDialogo("#pv-dialog"); });
+  $("#pv-elimina").addEventListener("click", () => { if (pvBozza && pvBozza.id && eliminaPosto(pvBozza.id)) { pvBozza = null; chiudiDialogo("#pv-dialog"); } });
+  // droni
+  $("#dr-list").addEventListener("click", e => { const a = e.target.closest("[data-dr-apri]"); if (a) apriDrone(a.dataset.drApri); });
+  $("#dr-add").addEventListener("click", () => apriDrone(null));
+  $("#dr-nome").addEventListener("input", () => puliziaMentreScrivo($("#dr-nome"), $("#dr-nome-conta"), NOME_DRONE_MAX));
+  $("#dr-form").addEventListener("submit", e => { e.preventDefault(); salvaDrone(); });
+  $("#dr-annulla").addEventListener("click", () => { drModifica = null; chiudiDialogo("#dr-dialog"); });
+  $("#dr-elimina").addEventListener("click", () => {
+    const d = S.imp.droni.find(x => x.id === drModifica); if (!d || S.imp.droni.length < 2) return;
+    if (!confirm(`Vuoi eliminare il drone "${d.nome}"?`)) return;
+    cambia(i => { i.droni = i.droni.filter(x => x.id !== d.id); });
+    drModifica = null; chiudiDialogo("#dr-dialog"); toast("Drone eliminato");
+  });
+  $("#dr-ripristina").addEventListener("click", () => {
+    if (!confirm("Rimetto i droni di partenza (AVATA 6/8 m/s e AIR 3S 7/9,5 m/s)? Le tue modifiche ai droni si perdono.")) return;
+    cambia(i => { i.droni = copiaDroni(DRONI_PARTENZA); });
+    toast("Droni di partenza ripristinati");
+  });
+  $("#vl-riprova").addEventListener("click", caricaVolo);
+}
+
 /* ---------- installazione sulla schermata Home ---------- */
 let promptInstalla = null;
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptInstalla = e; });
@@ -3084,6 +3654,8 @@ collegaGiochi();
 collegaMeteo();
 collegaPromemoria();
 collegaDate();
+collegaAcqua();
+collegaDroni();
 leggiHash();
 avvia();
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
